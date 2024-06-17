@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type CreateDAOCommand struct {
+type UpdateModelConfigCommand struct {
 	BaseCommand
 	currencycmds.OperationFlags
 	Sender               currencycmds.AddressFlag        `arg:"" name:"sender" help:"sender address" required:"true"`
@@ -37,7 +37,7 @@ type CreateDAOCommand struct {
 	fee                  currencytypes.Amount
 }
 
-func (cmd *CreateDAOCommand) Run(pctx context.Context) error { // nolint:dupl
+func (cmd *UpdateModelConfigCommand) Run(pctx context.Context) error { // nolint:dupl
 	if _, err := cmd.prepare(pctx); err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func (cmd *CreateDAOCommand) Run(pctx context.Context) error { // nolint:dupl
 	return nil
 }
 
-func (cmd *CreateDAOCommand) parseFlags() error {
+func (cmd *UpdateModelConfigCommand) parseFlags() error {
 	if err := cmd.OperationFlags.IsValid(nil); err != nil {
 		return err
 	}
@@ -88,10 +88,10 @@ func (cmd *CreateDAOCommand) parseFlags() error {
 	return nil
 }
 
-func (cmd *CreateDAOCommand) createOperation() (base.Operation, error) { // nolint:dupl}
-	e := util.StringError("failed to create create-dao operation")
+func (cmd *UpdateModelConfigCommand) createOperation() (base.Operation, error) { // nolint:dupl}
+	e := util.StringError("failed to create update-policy operation")
 
-	fact := dao.NewCreateDAOFact(
+	fact := dao.NewUpdateModelConfigFact(
 		[]byte(cmd.Token),
 		cmd.sender,
 		cmd.contract,
@@ -111,8 +111,7 @@ func (cmd *CreateDAOCommand) createOperation() (base.Operation, error) { // noli
 		cmd.Currency.CID,
 	)
 
-	op := dao.NewCreateDAO(fact)
-
+	op := dao.NewUpdateModelConfig(fact)
 	err := op.HashSign(cmd.Privatekey, cmd.NetworkID.NetworkID())
 	if err != nil {
 		return nil, e.Wrap(err)

@@ -12,19 +12,19 @@ import (
 )
 
 var (
-	CreateDAOFactHint = hint.MustNewHint("mitum-dao-create-dao-operation-fact-v0.0.1")
-	CreateDAOHint     = hint.MustNewHint("mitum-dao-create-dao-operation-v0.0.1")
+	RegisterModelFactHint = hint.MustNewHint("mitum-dao-register-model-operation-fact-v0.0.1")
+	RegisterModelHint     = hint.MustNewHint("mitum-dao-register-model-operation-v0.0.1")
 )
 
-type CreateDAOFact struct {
+type RegisterModelFact struct {
 	base.BaseFact
 	sender               base.Address
 	contract             base.Address
 	option               types.DAOOption
 	votingPowerToken     currencytypes.CurrencyID
 	threshold            common.Big
-	fee                  currencytypes.Amount
-	whitelist            types.Whitelist
+	proposalFee          currencytypes.Amount
+	proposerWhitelist    types.Whitelist
 	proposalReviewPeriod uint64
 	registrationPeriod   uint64
 	preSnapshotPeriod    uint64
@@ -36,7 +36,7 @@ type CreateDAOFact struct {
 	currency             currencytypes.CurrencyID
 }
 
-func NewCreateDAOFact(
+func NewRegisterModelFact(
 	token []byte,
 	sender base.Address,
 	contract base.Address,
@@ -53,17 +53,17 @@ func NewCreateDAOFact(
 	executionDelayPeriod uint64,
 	turnout, quorum types.PercentRatio,
 	currency currencytypes.CurrencyID,
-) CreateDAOFact {
-	bf := base.NewBaseFact(CreateDAOFactHint, token)
-	fact := CreateDAOFact{
+) RegisterModelFact {
+	bf := base.NewBaseFact(RegisterModelFactHint, token)
+	fact := RegisterModelFact{
 		BaseFact:             bf,
 		sender:               sender,
 		contract:             contract,
 		option:               option,
 		votingPowerToken:     votingPowerToken,
 		threshold:            threshold,
-		fee:                  fee,
-		whitelist:            whitelist,
+		proposalFee:          fee,
+		proposerWhitelist:    whitelist,
 		proposalReviewPeriod: proposalReviewPeriod,
 		registrationPeriod:   registrationPeriod,
 		preSnapshotPeriod:    preSnapshotPeriod,
@@ -79,15 +79,15 @@ func NewCreateDAOFact(
 	return fact
 }
 
-func (fact CreateDAOFact) Hash() util.Hash {
+func (fact RegisterModelFact) Hash() util.Hash {
 	return fact.BaseFact.Hash()
 }
 
-func (fact CreateDAOFact) GenerateHash() util.Hash {
+func (fact RegisterModelFact) GenerateHash() util.Hash {
 	return valuehash.NewSHA256(fact.Bytes())
 }
 
-func (fact CreateDAOFact) Bytes() []byte {
+func (fact RegisterModelFact) Bytes() []byte {
 	return util.ConcatBytesSlice(
 		fact.Token(),
 		fact.sender.Bytes(),
@@ -95,8 +95,8 @@ func (fact CreateDAOFact) Bytes() []byte {
 		fact.option.Bytes(),
 		fact.votingPowerToken.Bytes(),
 		fact.threshold.Bytes(),
-		fact.fee.Bytes(),
-		fact.whitelist.Bytes(),
+		fact.proposalFee.Bytes(),
+		fact.proposerWhitelist.Bytes(),
 		util.Uint64ToBytes(fact.proposalReviewPeriod),
 		util.Uint64ToBytes(fact.registrationPeriod),
 		util.Uint64ToBytes(fact.preSnapshotPeriod),
@@ -109,7 +109,7 @@ func (fact CreateDAOFact) Bytes() []byte {
 	)
 }
 
-func (fact CreateDAOFact) IsValid(b []byte) error {
+func (fact RegisterModelFact) IsValid(b []byte) error {
 	if err := fact.BaseHinter.IsValid(nil); err != nil {
 		return common.ErrFactInvalid.Wrap(err)
 	}
@@ -119,9 +119,9 @@ func (fact CreateDAOFact) IsValid(b []byte) error {
 		fact.contract,
 		fact.option,
 		fact.votingPowerToken,
-		fact.fee,
+		fact.proposalFee,
 		fact.threshold,
-		fact.whitelist,
+		fact.proposerWhitelist,
 		fact.turnout,
 		fact.quorum,
 		fact.currency,
@@ -129,9 +129,9 @@ func (fact CreateDAOFact) IsValid(b []byte) error {
 		return common.ErrFactInvalid.Wrap(err)
 	}
 
-	if !fact.fee.Big().OverNil() {
+	if !fact.proposalFee.Big().OverNil() {
 		return common.ErrFactInvalid.Wrap(
-			common.ErrValOOR.Wrap(errors.Errorf("fee amount must be bigger than or equal to zero, got %v", fact.fee.Big())))
+			common.ErrValOOR.Wrap(errors.Errorf("fee amount must be bigger than or equal to zero, got %v", fact.proposalFee.Big())))
 	}
 
 	if !fact.threshold.OverZero() {
@@ -168,10 +168,10 @@ func (fact CreateDAOFact) IsValid(b []byte) error {
 			common.ErrSelfTarget.Wrap(errors.Errorf("sender %v is same with contract account", fact.sender)))
 	}
 
-	for i := range fact.whitelist.Accounts() {
-		if fact.whitelist.Accounts()[i].Equal(fact.contract) {
+	for i := range fact.proposerWhitelist.Accounts() {
+		if fact.proposerWhitelist.Accounts()[i].Equal(fact.contract) {
 			return common.ErrFactInvalid.Wrap(
-				common.ErrSelfTarget.Wrap(errors.Errorf("whitelist account %v is same with contract account", fact.whitelist.Accounts()[i])))
+				common.ErrSelfTarget.Wrap(errors.Errorf("whitelist account %v is same with contract account", fact.proposerWhitelist.Accounts()[i])))
 		}
 	}
 
@@ -182,96 +182,96 @@ func (fact CreateDAOFact) IsValid(b []byte) error {
 	return nil
 }
 
-func (fact CreateDAOFact) Token() base.Token {
+func (fact RegisterModelFact) Token() base.Token {
 	return fact.BaseFact.Token()
 }
 
-func (fact CreateDAOFact) Sender() base.Address {
+func (fact RegisterModelFact) Sender() base.Address {
 	return fact.sender
 }
 
-func (fact CreateDAOFact) Contract() base.Address {
+func (fact RegisterModelFact) Contract() base.Address {
 	return fact.contract
 }
 
-func (fact CreateDAOFact) Option() types.DAOOption {
+func (fact RegisterModelFact) Option() types.DAOOption {
 	return fact.option
 }
 
-func (fact CreateDAOFact) VotingPowerToken() currencytypes.CurrencyID {
+func (fact RegisterModelFact) VotingPowerToken() currencytypes.CurrencyID {
 	return fact.votingPowerToken
 }
 
-func (fact CreateDAOFact) Fee() currencytypes.Amount {
-	return fact.fee
+func (fact RegisterModelFact) ProposalFee() currencytypes.Amount {
+	return fact.proposalFee
 }
 
-func (fact CreateDAOFact) Threshold() common.Big {
+func (fact RegisterModelFact) Threshold() common.Big {
 	return fact.threshold
 }
 
-func (fact CreateDAOFact) Whitelist() types.Whitelist {
-	return fact.whitelist
+func (fact RegisterModelFact) Whitelist() types.Whitelist {
+	return fact.proposerWhitelist
 }
 
-func (fact CreateDAOFact) ProposalReviewPeriod() uint64 {
+func (fact RegisterModelFact) ProposalReviewPeriod() uint64 {
 	return fact.proposalReviewPeriod
 }
 
-func (fact CreateDAOFact) RegistrationPeriod() uint64 {
+func (fact RegisterModelFact) RegistrationPeriod() uint64 {
 	return fact.registrationPeriod
 }
 
-func (fact CreateDAOFact) PreSnapshotPeriod() uint64 {
+func (fact RegisterModelFact) PreSnapshotPeriod() uint64 {
 	return fact.preSnapshotPeriod
 }
 
-func (fact CreateDAOFact) VotingPeriod() uint64 {
+func (fact RegisterModelFact) VotingPeriod() uint64 {
 	return fact.votingPeriod
 }
 
-func (fact CreateDAOFact) PostSnapshotPeriod() uint64 {
+func (fact RegisterModelFact) PostSnapshotPeriod() uint64 {
 	return fact.postSnapshotPeriod
 }
 
-func (fact CreateDAOFact) ExecutionDelayPeriod() uint64 {
+func (fact RegisterModelFact) ExecutionDelayPeriod() uint64 {
 	return fact.executionDelayPeriod
 }
 
-func (fact CreateDAOFact) Turnout() types.PercentRatio {
+func (fact RegisterModelFact) Turnout() types.PercentRatio {
 	return fact.turnout
 }
 
-func (fact CreateDAOFact) Quorum() types.PercentRatio {
+func (fact RegisterModelFact) Quorum() types.PercentRatio {
 	return fact.quorum
 }
 
-func (fact CreateDAOFact) Currency() currencytypes.CurrencyID {
+func (fact RegisterModelFact) Currency() currencytypes.CurrencyID {
 	return fact.currency
 }
 
-func (fact CreateDAOFact) Addresses() ([]base.Address, error) {
-	as := make([]base.Address, 2+len(fact.whitelist.Accounts()))
+func (fact RegisterModelFact) Addresses() ([]base.Address, error) {
+	as := make([]base.Address, 2+len(fact.proposerWhitelist.Accounts()))
 
 	as[0] = fact.sender
 	as[1] = fact.contract
 
-	for i, ac := range fact.whitelist.Accounts() {
+	for i, ac := range fact.proposerWhitelist.Accounts() {
 		as[i+2] = ac
 	}
 
 	return as, nil
 }
 
-type CreateDAO struct {
+type RegisterModel struct {
 	common.BaseOperation
 }
 
-func NewCreateDAO(fact CreateDAOFact) CreateDAO {
-	return CreateDAO{BaseOperation: common.NewBaseOperation(CreateDAOHint, fact)}
+func NewRegisterModel(fact RegisterModelFact) RegisterModel {
+	return RegisterModel{BaseOperation: common.NewBaseOperation(RegisterModelHint, fact)}
 }
 
-func (op *CreateDAO) HashSign(priv base.Privatekey, networkID base.NetworkID) error {
+func (op *RegisterModel) HashSign(priv base.Privatekey, networkID base.NetworkID) error {
 	err := op.Sign(priv, networkID)
 	if err != nil {
 		return err

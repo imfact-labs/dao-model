@@ -11,15 +11,15 @@ import (
 	"github.com/ProtoconNet/mitum2/util/encoder"
 )
 
-type CreateDAOFactJSONMarshaler struct {
+type RegisterModelFactJSONMarshaler struct {
 	base.BaseFactJSONMarshaler
 	Owner                base.Address             `json:"sender"`
 	Contract             base.Address             `json:"contract"`
 	Option               types.DAOOption          `json:"option"`
 	VotingPowerToken     currencytypes.CurrencyID `json:"voting_power_token"`
 	Threshold            common.Big               `json:"threshold"`
-	Fee                  currencytypes.Amount     `json:"fee"`
-	Whitelist            types.Whitelist          `json:"whitelist"`
+	ProposalFee          currencytypes.Amount     `json:"proposal_fee"`
+	ProposerWhitelist    types.Whitelist          `json:"proposer_whitelist"`
 	ProposalReviewPeriod uint64                   `json:"proposal_review_period"`
 	RegistrationPeriod   uint64                   `json:"registration_period"`
 	PreSnapshotPeriod    uint64                   `json:"pre_snapshot_period"`
@@ -31,16 +31,16 @@ type CreateDAOFactJSONMarshaler struct {
 	Currency             currencytypes.CurrencyID `json:"currency"`
 }
 
-func (fact CreateDAOFact) MarshalJSON() ([]byte, error) {
-	return util.MarshalJSON(CreateDAOFactJSONMarshaler{
+func (fact RegisterModelFact) MarshalJSON() ([]byte, error) {
+	return util.MarshalJSON(RegisterModelFactJSONMarshaler{
 		BaseFactJSONMarshaler: fact.BaseFact.JSONMarshaler(),
 		Owner:                 fact.sender,
 		Contract:              fact.contract,
 		Option:                fact.option,
 		VotingPowerToken:      fact.votingPowerToken,
 		Threshold:             fact.threshold,
-		Fee:                   fact.fee,
-		Whitelist:             fact.whitelist,
+		ProposalFee:           fact.proposalFee,
+		ProposerWhitelist:     fact.proposerWhitelist,
 		ProposalReviewPeriod:  fact.proposalReviewPeriod,
 		RegistrationPeriod:    fact.registrationPeriod,
 		PreSnapshotPeriod:     fact.preSnapshotPeriod,
@@ -53,15 +53,15 @@ func (fact CreateDAOFact) MarshalJSON() ([]byte, error) {
 	})
 }
 
-type CreateDAOFactJSONUnMarshaler struct {
+type RegisterModelFactJSONUnMarshaler struct {
 	base.BaseFactJSONUnmarshaler
 	Owner                string          `json:"sender"`
 	Contract             string          `json:"contract"`
 	Option               string          `json:"option"`
 	VotingPowerToken     string          `json:"voting_power_token"`
 	Threshold            string          `json:"threshold"`
-	Fee                  json.RawMessage `json:"fee"`
-	Whitelist            json.RawMessage `json:"whitelist"`
+	ProposalFee          json.RawMessage `json:"proposal_fee"`
+	ProposerWhitelist    json.RawMessage `json:"proposer_whitelist"`
 	ProposalReviewPeriod uint64          `json:"proposal_review_period"`
 	RegistrationPeriod   uint64          `json:"registration_period"`
 	PreSnapshotPeriod    uint64          `json:"pre_snapshot_period"`
@@ -73,8 +73,8 @@ type CreateDAOFactJSONUnMarshaler struct {
 	Currency             string          `json:"currency"`
 }
 
-func (fact *CreateDAOFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
-	var uf CreateDAOFactJSONUnMarshaler
+func (fact *RegisterModelFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
+	var uf RegisterModelFactJSONUnMarshaler
 	if err := enc.Unmarshal(b, &uf); err != nil {
 		return common.DecorateError(err, common.ErrDecodeJson, *fact)
 	}
@@ -86,8 +86,8 @@ func (fact *CreateDAOFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
 		uf.Option,
 		uf.VotingPowerToken,
 		uf.Threshold,
-		uf.Fee,
-		uf.Whitelist,
+		uf.ProposalFee,
+		uf.ProposerWhitelist,
 		uf.ProposalReviewPeriod,
 		uf.RegistrationPeriod,
 		uf.PreSnapshotPeriod,
@@ -104,17 +104,17 @@ func (fact *CreateDAOFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	return nil
 }
 
-type CreateDAOMarshaler struct {
+type RegisterModelMarshaler struct {
 	common.BaseOperationJSONMarshaler
 }
 
-func (op CreateDAO) MarshalJSON() ([]byte, error) {
-	return util.MarshalJSON(CreateDAOMarshaler{
+func (op RegisterModel) MarshalJSON() ([]byte, error) {
+	return util.MarshalJSON(RegisterModelMarshaler{
 		BaseOperationJSONMarshaler: op.BaseOperation.JSONMarshaler(),
 	})
 }
 
-func (op *CreateDAO) DecodeJSON(b []byte, enc encoder.Encoder) error {
+func (op *RegisterModel) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	var ubo common.BaseOperation
 	if err := ubo.DecodeJSON(b, enc); err != nil {
 		return common.DecorateError(err, common.ErrDecodeJson, *op)

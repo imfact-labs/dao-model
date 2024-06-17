@@ -10,7 +10,7 @@ import (
 )
 
 type TestUpdatePolicyProcessor struct {
-	*test.BaseTestOperationProcessorNoItem[UpdatePolicy]
+	*test.BaseTestOperationProcessorNoItem[UpdateModelConfig]
 	option               daotypes.DAOOption
 	votingPowerToken     types.CurrencyID
 	threshold            common.Big
@@ -29,7 +29,7 @@ type TestUpdatePolicyProcessor struct {
 func NewTestUpdatePolicyProcessor(
 	tp *test.TestProcessor,
 ) TestUpdatePolicyProcessor {
-	t := test.NewBaseTestOperationProcessorNoItem[UpdatePolicy](tp)
+	t := test.NewBaseTestOperationProcessorNoItem[UpdateModelConfig](tp)
 	return TestUpdatePolicyProcessor{BaseTestOperationProcessorNoItem: &t}
 }
 
@@ -155,8 +155,8 @@ func (t *TestUpdatePolicyProcessor) MakeOperation(
 	sender base.Address, privatekey base.Privatekey,
 	contract base.Address, currency types.CurrencyID,
 ) *TestUpdatePolicyProcessor {
-	op := NewUpdatePolicy(
-		NewUpdatePolicyFact(
+	op := NewUpdateModelConfig(
+		NewUpdateModelConfigFact(
 			[]byte("token"),
 			sender,
 			contract,

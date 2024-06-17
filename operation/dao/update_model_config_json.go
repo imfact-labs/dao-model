@@ -11,15 +11,15 @@ import (
 	"github.com/ProtoconNet/mitum2/util/encoder"
 )
 
-type UpdatePolicyFactJSONMarshaler struct {
+type UpdateModelConfigFactJSONMarshaler struct {
 	base.BaseFactJSONMarshaler
 	Owner                base.Address             `json:"sender"`
 	Contract             base.Address             `json:"contract"`
 	Option               types.DAOOption          `json:"option"`
 	VotingPowerToken     currencytypes.CurrencyID `json:"voting_power_token"`
 	Threshold            common.Big               `json:"threshold"`
-	Fee                  currencytypes.Amount     `json:"fee"`
-	Whitelist            types.Whitelist          `json:"whitelist"`
+	ProposalFee          currencytypes.Amount     `json:"proposal_fee"`
+	ProposerWhitelist    types.Whitelist          `json:"proposer_whitelist"`
 	ProposalReviewPeriod uint64                   `json:"proposal_review_period"`
 	RegistrationPeriod   uint64                   `json:"registration_period"`
 	PreSnapshotPeriod    uint64                   `json:"pre_snapshot_period"`
@@ -31,16 +31,16 @@ type UpdatePolicyFactJSONMarshaler struct {
 	Currency             currencytypes.CurrencyID `json:"currency"`
 }
 
-func (fact UpdatePolicyFact) MarshalJSON() ([]byte, error) {
-	return util.MarshalJSON(UpdatePolicyFactJSONMarshaler{
+func (fact UpdateModelConfigFact) MarshalJSON() ([]byte, error) {
+	return util.MarshalJSON(UpdateModelConfigFactJSONMarshaler{
 		BaseFactJSONMarshaler: fact.BaseFact.JSONMarshaler(),
 		Owner:                 fact.sender,
 		Contract:              fact.contract,
 		Option:                fact.option,
 		VotingPowerToken:      fact.votingPowerToken,
 		Threshold:             fact.threshold,
-		Fee:                   fact.fee,
-		Whitelist:             fact.whitelist,
+		ProposalFee:           fact.proposalFee,
+		ProposerWhitelist:     fact.proposerWhitelist,
 		ProposalReviewPeriod:  fact.proposalReviewPeriod,
 		RegistrationPeriod:    fact.registrationPeriod,
 		PreSnapshotPeriod:     fact.preSnapshotPeriod,
@@ -53,15 +53,15 @@ func (fact UpdatePolicyFact) MarshalJSON() ([]byte, error) {
 	})
 }
 
-type UpdatePolicyFactJSONUnMarshaler struct {
+type UpdateModelConfigFactJSONUnMarshaler struct {
 	base.BaseFactJSONUnmarshaler
 	Owner                string          `json:"sender"`
 	Contract             string          `json:"contract"`
 	Option               string          `json:"option"`
 	VotingPowerToken     string          `json:"voting_power_token"`
 	Threshold            string          `json:"threshold"`
-	Fee                  json.RawMessage `json:"fee"`
-	Whitelist            json.RawMessage `json:"whitelist"`
+	ProposalFee          json.RawMessage `json:"proposal_fee"`
+	ProposerWhitelist    json.RawMessage `json:"proposer_whitelist"`
 	ProposalReviewPeriod uint64          `json:"proposal_review_period"`
 	RegistrationPeriod   uint64          `json:"registration_period"`
 	PreSnapshotPeriod    uint64          `json:"pre_snapshot_period"`
@@ -73,8 +73,8 @@ type UpdatePolicyFactJSONUnMarshaler struct {
 	Currency             string          `json:"currency"`
 }
 
-func (fact *UpdatePolicyFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
-	var uf UpdatePolicyFactJSONUnMarshaler
+func (fact *UpdateModelConfigFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
+	var uf UpdateModelConfigFactJSONUnMarshaler
 	if err := enc.Unmarshal(b, &uf); err != nil {
 		return common.DecorateError(err, common.ErrDecodeJson, *fact)
 	}
@@ -86,8 +86,8 @@ func (fact *UpdatePolicyFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
 		uf.Option,
 		uf.VotingPowerToken,
 		uf.Threshold,
-		uf.Fee,
-		uf.Whitelist,
+		uf.ProposalFee,
+		uf.ProposerWhitelist,
 		uf.ProposalReviewPeriod,
 		uf.RegistrationPeriod,
 		uf.PreSnapshotPeriod,
@@ -104,17 +104,17 @@ func (fact *UpdatePolicyFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	return nil
 }
 
-type UpdatePolicyMarshaler struct {
+type UpdateModelConfigMarshaler struct {
 	common.BaseOperationJSONMarshaler
 }
 
-func (op UpdatePolicy) MarshalJSON() ([]byte, error) {
-	return util.MarshalJSON(UpdatePolicyMarshaler{
+func (op UpdateModelConfig) MarshalJSON() ([]byte, error) {
+	return util.MarshalJSON(UpdateModelConfigMarshaler{
 		BaseOperationJSONMarshaler: op.BaseOperation.JSONMarshaler(),
 	})
 }
 
-func (op *UpdatePolicy) DecodeJSON(b []byte, enc encoder.Encoder) error {
+func (op *UpdateModelConfig) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	var ubo common.BaseOperation
 	if err := ubo.DecodeJSON(b, enc); err != nil {
 		return common.DecorateError(err, common.ErrDecodeJson, *op)

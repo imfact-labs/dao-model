@@ -78,7 +78,7 @@ func (opp *RegisterProcessor) PreProcess(
 				Errorf("%v", err)), nil
 	}
 
-	if err := currencystate.CheckExistsState(currency.StateKeyCurrencyDesign(fact.Currency()), getStateFunc); err != nil {
+	if err := currencystate.CheckExistsState(currency.DesignStateKey(fact.Currency()), getStateFunc); err != nil {
 		return ctx, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.Wrap(common.ErrMCurrencyNF).Errorf("currency id %q", fact.Currency())), nil
 	}
@@ -155,7 +155,7 @@ func (opp *RegisterProcessor) PreProcess(
 		voter := types.VoterInfo{}
 
 		for _, v := range voters {
-			if !fact.Delegated().Equal(v.Account()) {
+			if !fact.Approved().Equal(v.Account()) {
 				continue
 			}
 			for _, d := range voter.Delegators() {
@@ -164,7 +164,7 @@ func (opp *RegisterProcessor) PreProcess(
 						common.ErrMPreProcess.Wrap(common.ErrMValueInvalid).
 							Errorf("sender %v already delegates the account %v",
 								fact.Sender(),
-								fact.Delegated(),
+								fact.Approved(),
 							)), nil
 				}
 			}
@@ -255,7 +255,7 @@ func (opp *RegisterProcessor) Process(
 		}
 
 		senderBalSt, err := currencystate.ExistsState(
-			currency.StateKeyBalance(fact.Sender(), fact.Currency()),
+			currency.BalanceStateKey(fact.Sender(), fact.Currency()),
 			"key of sender balance",
 			getStateFunc,
 		)
@@ -271,7 +271,7 @@ func (opp *RegisterProcessor) Process(
 		case err != nil:
 			return nil, base.NewBaseOperationProcessReasonError(
 				"failed to get balance value, %q; %w",
-				currency.StateKeyBalance(fact.Sender(), fact.Currency()),
+				currency.BalanceStateKey(fact.Sender(), fact.Currency()),
 				err,
 			), nil
 		case senderBal.Big().Compare(fee) < 0:
@@ -287,9 +287,9 @@ func (opp *RegisterProcessor) Process(
 		}
 
 		if currencyPolicy.Feeer().Receiver() != nil {
-			if err := currencystate.CheckExistsState(currency.StateKeyAccount(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
+			if err := currencystate.CheckExistsState(currency.AccountStateKey(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
 				return nil, nil, err
-			} else if feeRcvrSt, found, err := getStateFunc(currency.StateKeyBalance(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
+			} else if feeRcvrSt, found, err := getStateFunc(currency.BalanceStateKey(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
 				return nil, nil, err
 			} else if !found {
 				return nil, nil, errors.Errorf("feeer receiver %s not found", currencyPolicy.Feeer().Receiver())
@@ -328,22 +328,22 @@ func (opp *RegisterProcessor) Process(
 		}
 
 		for i, info := range vs {
-			if info.Account().Equal(fact.Delegated()) {
+			if info.Account().Equal(fact.Approved()) {
 				delegators := info.Delegators()
 				delegators = append(delegators, fact.Sender())
-				vs[i] = types.NewVoterInfo(fact.Delegated(), delegators)
+				vs[i] = types.NewVoterInfo(fact.Approved(), delegators)
 
 				break
 			}
 
 			if i == len(vs)-1 {
-				vs = append(vs, types.NewVoterInfo(fact.Delegated(), []base.Address{fact.Sender()}))
+				vs = append(vs, types.NewVoterInfo(fact.Approved(), []base.Address{fact.Sender()}))
 			}
 		}
 		voters = vs
 	default:
 		var vs []types.VoterInfo
-		vs = append(vs, types.NewVoterInfo(fact.Delegated(), []base.Address{fact.Sender()}))
+		vs = append(vs, types.NewVoterInfo(fact.Approved(), []base.Address{fact.Sender()}))
 		voters = vs
 	}
 
@@ -366,7 +366,7 @@ func (opp *RegisterProcessor) Process(
 			return nil, base.NewBaseOperationProcessReasonError("failed to find delegators value from state, %s,%q: %w", fact.Contract(), fact.ProposalID(), err), nil
 		}
 
-		delegators = append(delegators, types.NewDelegatorInfo(fact.Sender(), fact.Delegated()))
+		delegators = append(delegators, types.NewDelegatorInfo(fact.Sender(), fact.Approved()))
 
 		sts = append(sts,
 			common.NewBaseStateMergeValue(
@@ -381,7 +381,7 @@ func (opp *RegisterProcessor) Process(
 		sts = append(sts,
 			common.NewBaseStateMergeValue(
 				state.StateKeyDelegators(fact.Contract(), fact.ProposalID()),
-				state.NewDelegatorsStateValue([]types.DelegatorInfo{types.NewDelegatorInfo(fact.Sender(), fact.Delegated())}),
+				state.NewDelegatorsStateValue([]types.DelegatorInfo{types.NewDelegatorInfo(fact.Sender(), fact.Approved())}),
 				func(height base.Height, st base.State) base.StateValueMerger {
 					return state.NewDelegatorsStateValueMerger(height, state.StateKeyDelegators(fact.Contract(), fact.ProposalID()), st)
 				},

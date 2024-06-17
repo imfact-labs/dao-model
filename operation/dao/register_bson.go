@@ -16,7 +16,7 @@ func (fact RegisterFact) MarshalBSON() ([]byte, error) {
 			"sender":      fact.sender,
 			"contract":    fact.contract,
 			"proposal_id": fact.proposalID,
-			"delegated":   fact.delegated,
+			"approved":    fact.approved,
 			"currency":    fact.currency,
 			"hash":        fact.BaseFact.Hash().String(),
 			"token":       fact.BaseFact.Token(),
@@ -29,7 +29,7 @@ type RegisterFactBSONUnmarshaler struct {
 	Sender     string `bson:"sender"`
 	Contract   string `bson:"contract"`
 	ProposalID string `bson:"proposal_id"`
-	Delegated  string `bson:"delegated"`
+	Approved   string `bson:"approved"`
 	Currency   string `bson:"currency"`
 }
 
@@ -57,7 +57,7 @@ func (fact *RegisterFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 		uf.Sender,
 		uf.Contract,
 		uf.ProposalID,
-		uf.Delegated,
+		uf.Approved,
 		uf.Currency,
 	); err != nil {
 		return common.DecorateError(err, common.ErrDecodeBson, *fact)

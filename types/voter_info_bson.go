@@ -11,17 +11,17 @@ import (
 func (r VoterInfo) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(
 		bson.M{
-			"_hint":      r.Hint().String(),
-			"account":    r.account,
-			"delegators": r.delegators,
+			"_hint":                r.Hint().String(),
+			"voter":                r.account,
+			"voting_power_holders": r.delegators,
 		},
 	)
 }
 
 type VoterInfoBSONUnmarshaler struct {
 	Hint       string   `bson:"_hint"`
-	Account    string   `bson:"account"`
-	Delegators []string `bson:"delegators"`
+	Account    string   `bson:"voter"`
+	Delegators []string `bson:"voting_power_holders"`
 }
 
 func (r *VoterInfo) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {

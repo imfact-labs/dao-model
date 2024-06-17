@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type UpdatePolicyCommand struct {
+type RegisterModelCommand struct {
 	BaseCommand
 	currencycmds.OperationFlags
 	Sender               currencycmds.AddressFlag        `arg:"" name:"sender" help:"sender address" required:"true"`
@@ -37,7 +37,7 @@ type UpdatePolicyCommand struct {
 	fee                  currencytypes.Amount
 }
 
-func (cmd *UpdatePolicyCommand) Run(pctx context.Context) error { // nolint:dupl
+func (cmd *RegisterModelCommand) Run(pctx context.Context) error { // nolint:dupl
 	if _, err := cmd.prepare(pctx); err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func (cmd *UpdatePolicyCommand) Run(pctx context.Context) error { // nolint:dupl
 	return nil
 }
 
-func (cmd *UpdatePolicyCommand) parseFlags() error {
+func (cmd *RegisterModelCommand) parseFlags() error {
 	if err := cmd.OperationFlags.IsValid(nil); err != nil {
 		return err
 	}
@@ -88,10 +88,10 @@ func (cmd *UpdatePolicyCommand) parseFlags() error {
 	return nil
 }
 
-func (cmd *UpdatePolicyCommand) createOperation() (base.Operation, error) { // nolint:dupl}
-	e := util.StringError("failed to create update-policy operation")
+func (cmd *RegisterModelCommand) createOperation() (base.Operation, error) { // nolint:dupl}
+	e := util.StringError("failed to create create-dao operation")
 
-	fact := dao.NewUpdatePolicyFact(
+	fact := dao.NewRegisterModelFact(
 		[]byte(cmd.Token),
 		cmd.sender,
 		cmd.contract,
@@ -111,7 +111,8 @@ func (cmd *UpdatePolicyCommand) createOperation() (base.Operation, error) { // n
 		cmd.Currency.CID,
 	)
 
-	op := dao.NewUpdatePolicy(fact)
+	op := dao.NewRegisterModel(fact)
+
 	err := op.HashSign(cmd.Privatekey, cmd.NetworkID.NetworkID())
 	if err != nil {
 		return nil, e.Wrap(err)

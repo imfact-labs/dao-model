@@ -10,7 +10,7 @@ func (fact *VoteFact) unpack(enc encoder.Encoder,
 	sa, ca, pid string, vt uint8, cid string,
 ) error {
 	fact.proposalID = pid
-	fact.vote = vt
+	fact.voteOption = vt
 	fact.currency = currencytypes.CurrencyID(cid)
 
 	switch a, err := base.DecodeAddress(sa, enc); {

@@ -3,6 +3,7 @@ package digest
 import (
 	"context"
 	currencydigest "github.com/ProtoconNet/mitum-currency/v3/digest"
+	"github.com/ProtoconNet/mitum-currency/v3/types"
 	isaacnetwork "github.com/ProtoconNet/mitum2/isaac/network"
 	"github.com/ProtoconNet/mitum2/network/quicmemberlist"
 	"github.com/ProtoconNet/mitum2/network/quicstream"
@@ -22,11 +23,11 @@ import (
 )
 
 var (
-	HandlerPathDAOService        = `/dao/{contract:\w+}/service`
-	HandlerPathDAOProposal       = `/dao/{contract:\w+}/proposal/{proposal_id:\w+}`
-	HandlerPathDAODelegator      = `/dao/{contract:\w+}/proposal/{proposal_id:\w+}/delegator/{address:(?i)` + base.REStringAddressString + `}`
-	HandlerPathDAOVoters         = `/dao/{contract:\w+}/proposal/{proposal_id:\w+}/voter`
-	HandlerPathDAOVotingPowerBox = `/dao/{contract:\w+}/proposal/{proposal_id:\w+}/votingpower` // revive:disable-line:line-length-limit
+	HandlerPathDAOService        = `/dao/{contract:(?i)` + types.REStringAddressString + `}`
+	HandlerPathDAOProposal       = `/dao/{contract:(?i)` + types.REStringAddressString + `}/proposal/{proposal_id:\w+}`
+	HandlerPathDAODelegator      = `/dao/{contract:(?i)` + types.REStringAddressString + `}/proposal/{proposal_id:\w+}/registrant/{address:(?i)` + types.REStringAddressString + `}`
+	HandlerPathDAOVoters         = `/dao/{contract:(?i)` + types.REStringAddressString + `}/proposal/{proposal_id:\w+}/voter`
+	HandlerPathDAOVotingPowerBox = `/dao/{contract:(?i)` + types.REStringAddressString + `}/proposal/{proposal_id:\w+}/votingpower` // revive:disable-line:line-length-limit
 )
 
 func init() {

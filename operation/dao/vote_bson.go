@@ -16,7 +16,7 @@ func (fact VoteFact) MarshalBSON() ([]byte, error) {
 			"sender":      fact.sender,
 			"contract":    fact.contract,
 			"proposal_id": fact.proposalID,
-			"vote":        fact.vote,
+			"vote_option": fact.voteOption,
 			"currency":    fact.currency,
 			"hash":        fact.BaseFact.Hash().String(),
 			"token":       fact.BaseFact.Token(),
@@ -29,7 +29,7 @@ type VoteFactBSONUnmarshaler struct {
 	Sender     string `bson:"sender"`
 	Contract   string `bson:"contract"`
 	ProposalID string `bson:"proposal_id"`
-	Vote       uint8  `bson:"vote"`
+	VoteOption uint8  `bson:"vote_option"`
 	Currency   string `bson:"currency"`
 }
 
@@ -57,7 +57,7 @@ func (fact *VoteFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 		uf.Sender,
 		uf.Contract,
 		uf.ProposalID,
-		uf.Vote,
+		uf.VoteOption,
 		uf.Currency,
 	); err != nil {
 		return common.DecorateError(err, common.ErrDecodeBson, *fact)

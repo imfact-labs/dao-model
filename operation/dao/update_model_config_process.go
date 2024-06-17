@@ -17,35 +17,35 @@ import (
 	"github.com/pkg/errors"
 )
 
-var createDAOProcessorPool = sync.Pool{
+var updateModelConfigProcessorPool = sync.Pool{
 	New: func() interface{} {
-		return new(CreateDAOProcessor)
+		return new(UpdateModelConfigProcessor)
 	},
 }
 
-func (CreateDAO) Process(
+func (UpdateModelConfig) Process(
 	_ context.Context, _ base.GetStateFunc,
 ) ([]base.StateMergeValue, base.OperationProcessReasonError, error) {
 	return nil, nil, nil
 }
 
-type CreateDAOProcessor struct {
+type UpdateModelConfigProcessor struct {
 	*base.BaseOperationProcessor
 }
 
-func NewCreateDAOProcessor() currencytypes.GetNewProcessor {
+func NewUpdatePolicyProcessor() currencytypes.GetNewProcessor {
 	return func(
 		height base.Height,
 		getStateFunc base.GetStateFunc,
 		newPreProcessConstraintFunc base.NewOperationProcessorProcessFunc,
 		newProcessConstraintFunc base.NewOperationProcessorProcessFunc,
 	) (base.OperationProcessor, error) {
-		e := util.StringError("failed to create new CreateDAOProcessor")
+		e := util.StringError("failed to create new UpdatePolicyProcessor")
 
-		nopp := createDAOProcessorPool.Get()
-		opp, ok := nopp.(*CreateDAOProcessor)
+		nopp := updateModelConfigProcessorPool.Get()
+		opp, ok := nopp.(*UpdateModelConfigProcessor)
 		if !ok {
-			return nil, errors.Errorf("expected CreateDAOProcessor, not %T", nopp)
+			return nil, errors.Errorf("expected UpdatePolicyProcessor, not %T", nopp)
 		}
 
 		b, err := base.NewBaseOperationProcessor(
@@ -60,15 +60,15 @@ func NewCreateDAOProcessor() currencytypes.GetNewProcessor {
 	}
 }
 
-func (opp *CreateDAOProcessor) PreProcess(
+func (opp *UpdateModelConfigProcessor) PreProcess(
 	ctx context.Context, op base.Operation, getStateFunc base.GetStateFunc,
 ) (context.Context, base.OperationProcessReasonError, error) {
-	fact, ok := op.Fact().(CreateDAOFact)
+	fact, ok := op.Fact().(UpdateModelConfigFact)
 	if !ok {
 		return ctx, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
 				Wrap(common.ErrMTypeMismatch).
-				Errorf("expected %T, not %T", CreateDAOFact{}, op.Fact())), nil
+				Errorf("expected %T, not %T", UpdateModelConfigFact{}, op.Fact())), nil
 	}
 
 	if err := fact.IsValid(nil); err != nil {
@@ -77,14 +77,12 @@ func (opp *CreateDAOProcessor) PreProcess(
 				Errorf("%v", err)), nil
 	}
 
-	if err := currencystate.CheckExistsState(
-		currency.StateKeyCurrencyDesign(fact.Currency()), getStateFunc); err != nil {
+	if err := currencystate.CheckExistsState(currency.DesignStateKey(fact.Currency()), getStateFunc); err != nil {
 		return ctx, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.Wrap(common.ErrMCurrencyNF).Errorf("currency id %q", fact.Currency())), nil
 	}
 
-	if _, _, aErr, cErr := currencystate.ExistsCAccount(
-		fact.Sender(), "sender", true, false, getStateFunc); aErr != nil {
+	if _, _, aErr, cErr := currencystate.ExistsCAccount(fact.Sender(), "sender", true, false, getStateFunc); aErr != nil {
 		return ctx, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
 				Errorf("%v", aErr)), nil
@@ -94,8 +92,7 @@ func (opp *CreateDAOProcessor) PreProcess(
 				Errorf("%v", cErr)), nil
 	}
 
-	_, cSt, aErr, cErr := currencystate.ExistsCAccount(
-		fact.Contract(), "contract", true, true, getStateFunc)
+	_, cSt, aErr, cErr := currencystate.ExistsCAccount(fact.Contract(), "contract", true, true, getStateFunc)
 	if aErr != nil {
 		return ctx, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
@@ -119,45 +116,37 @@ func (opp *CreateDAOProcessor) PreProcess(
 		}
 	}
 
-	ca, err := stateextension.CheckCAAuthFromState(cSt, fact.Sender())
+	_, err := stateextension.CheckCAAuthFromState(cSt, fact.Sender())
 	if err != nil {
 		return ctx, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
-				Wrap(common.ErrMValueInvalid).
 				Errorf("%v", err)), nil
 	}
 
-	if ca.IsActive() {
-		return ctx, base.NewBaseOperationProcessReasonError(
-			common.ErrMPreProcess.
-				Wrap(common.ErrMServiceE).Errorf(
-				"contract account %v has already been activated", fact.Contract())), nil
-	}
-
-	if found, _ := currencystate.CheckNotExistsState(state.StateKeyDesign(fact.Contract()), getStateFunc); found {
+	if st, err := currencystate.ExistsState(state.StateKeyDesign(fact.Contract()), "design", getStateFunc); err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
-				Wrap(common.ErrMServiceE).Errorf("dao design for contract account %v",
+				Wrap(common.ErrMServiceNF).Errorf("dao design for contract account %v",
+				fact.Contract(),
+			)), nil
+	} else if _, err := state.StateDesignValue(st); err != nil {
+		return nil, base.NewBaseOperationProcessReasonError(
+			common.ErrMPreProcess.
+				Wrap(common.ErrMServiceNF).Errorf("dao design for contract account %v",
 				fact.Contract(),
 			)), nil
 	}
 
-	if err := currencystate.CheckExistsState(currency.StateKeyCurrencyDesign(fact.VotingPowerToken()), getStateFunc); err != nil {
-		return nil, base.NewBaseOperationProcessReasonError(
-			common.ErrMPreProcess.Wrap(common.ErrMStateNF).
-				Errorf("voting power token %q", fact.VotingPowerToken())), nil
+	if err := currencystate.CheckExistsState(currency.DesignStateKey(fact.VotingPowerToken()), getStateFunc); err != nil {
+		return ctx, base.NewBaseOperationProcessReasonError(
+			common.ErrMPreProcess.
+				Wrap(common.ErrMCurrencyNF).Errorf("voting power token %q", fact.VotingPowerToken())), nil
 	}
 
-	if err := currencystate.CheckExistsState(currency.StateKeyCurrencyDesign(fact.fee.Currency()), getStateFunc); err != nil {
+	if err := currencystate.CheckExistsState(currency.DesignStateKey(fact.proposalFee.Currency()), getStateFunc); err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.Wrap(common.ErrMStateNF).
-				Errorf("proposal fee currency %q", fact.fee.Currency())), nil
-	}
-
-	if err := currencystate.CheckExistsState(currency.StateKeyCurrencyDesign(fact.VotingPowerToken()), getStateFunc); err != nil {
-		return nil, base.NewBaseOperationProcessReasonError(
-			common.ErrMPreProcess.Wrap(common.ErrMStateNF).
-				Errorf("voting power token %q", fact.VotingPowerToken())), nil
+				Errorf("proposal fee currency %q", fact.proposalFee.Currency())), nil
 	}
 
 	if err := currencystate.CheckFactSignsByState(fact.Sender(), op.Signs(), getStateFunc); err != nil {
@@ -170,19 +159,19 @@ func (opp *CreateDAOProcessor) PreProcess(
 	return ctx, nil, nil
 }
 
-func (opp *CreateDAOProcessor) Process(
+func (opp *UpdateModelConfigProcessor) Process(
 	_ context.Context, op base.Operation, getStateFunc base.GetStateFunc) (
 	[]base.StateMergeValue, base.OperationProcessReasonError, error,
 ) {
-	e := util.StringError("failed to process CreateDAO")
+	e := util.StringError("failed to process UpdatePolicy")
 
-	fact, ok := op.Fact().(CreateDAOFact)
+	fact, ok := op.Fact().(UpdateModelConfigFact)
 	if !ok {
-		return nil, nil, e.Errorf("expected CreateDAOFact, not %T", op.Fact())
+		return nil, nil, e.Errorf("expected UpdatePolicyFact, not %T", op.Fact())
 	}
 
 	policy := types.NewPolicy(
-		fact.votingPowerToken, fact.threshold, fact.fee, fact.whitelist,
+		fact.votingPowerToken, fact.threshold, fact.proposalFee, fact.proposerWhitelist,
 		fact.proposalReviewPeriod, fact.registrationPeriod, fact.preSnapshotPeriod, fact.votingPeriod,
 		fact.postSnapshotPeriod, fact.executionDelayPeriod, fact.turnout, fact.quorum,
 	)
@@ -202,22 +191,6 @@ func (opp *CreateDAOProcessor) Process(
 		state.NewDesignStateValue(design),
 	))
 
-	st, err := currencystate.ExistsState(stateextension.StateKeyContractAccount(fact.Contract()), "key of contract account", getStateFunc)
-	if err != nil {
-		return nil, base.NewBaseOperationProcessReasonError("target contract account not found, %q; %w", fact.Contract(), err), nil
-	}
-
-	ca, err := stateextension.StateContractAccountValue(st)
-	if err != nil {
-		return nil, base.NewBaseOperationProcessReasonError("failed to get state value of contract account, %q; %w", fact.Contract(), err), nil
-	}
-	nca := ca.SetIsActive(true)
-
-	sts = append(sts, currencystate.NewStateMergeValue(
-		stateextension.StateKeyContractAccount(fact.Contract()),
-		stateextension.NewContractAccountStateValue(nca),
-	))
-
 	{ // caculate operation fee
 		currencyPolicy, err := currencystate.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
 		if err != nil {
@@ -234,7 +207,7 @@ func (opp *CreateDAOProcessor) Process(
 		}
 
 		senderBalSt, err := currencystate.ExistsState(
-			currency.StateKeyBalance(fact.Sender(), fact.Currency()),
+			currency.BalanceStateKey(fact.Sender(), fact.Currency()),
 			"key of sender balance",
 			getStateFunc,
 		)
@@ -250,7 +223,7 @@ func (opp *CreateDAOProcessor) Process(
 		case err != nil:
 			return nil, base.NewBaseOperationProcessReasonError(
 				"failed to get balance value, %q; %w",
-				currency.StateKeyBalance(fact.Sender(), fact.Currency()),
+				currency.BalanceStateKey(fact.Sender(), fact.Currency()),
 				err,
 			), nil
 		case senderBal.Big().Compare(fee) < 0:
@@ -266,9 +239,9 @@ func (opp *CreateDAOProcessor) Process(
 		}
 
 		if currencyPolicy.Feeer().Receiver() != nil {
-			if err := currencystate.CheckExistsState(currency.StateKeyAccount(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
+			if err := currencystate.CheckExistsState(currency.AccountStateKey(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
 				return nil, nil, err
-			} else if feeRcvrSt, found, err := getStateFunc(currency.StateKeyBalance(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
+			} else if feeRcvrSt, found, err := getStateFunc(currency.BalanceStateKey(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
 				return nil, nil, err
 			} else if !found {
 				return nil, nil, errors.Errorf("feeer receiver %s not found", currencyPolicy.Feeer().Receiver())
@@ -296,11 +269,40 @@ func (opp *CreateDAOProcessor) Process(
 		}
 	}
 
+	//currencyPolicy, err := currencystate.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
+	//if err != nil {
+	//	return nil, base.NewBaseOperationProcessReasonError("currency not found, %q: %w", fact.Currency(), err), nil
+	//}
+	//
+	//fee, err := currencyPolicy.Feeer().Fee(common.ZeroBig)
+	//if err != nil {
+	//	return nil, base.NewBaseOperationProcessReasonError("failed to check fee of currency, %q: %w", fact.Currency(), err), nil
+	//}
+	//
+	//st, err := currencystate.ExistsState(currency.BalanceStateKey(fact.Sender(), fact.Currency()), "key of sender balance", getStateFunc)
+	//if err != nil {
+	//	return nil, base.NewBaseOperationProcessReasonError("sender balance not found, %s, %q: %w", fact.Sender(), fact.Currency(), err), nil
+	//}
+	//sb := currencystate.NewStateMergeValue(st.Key(), st.Value())
+	//
+	//switch b, err := currency.StateBalanceValue(st); {
+	//case err != nil:
+	//	return nil, base.NewBaseOperationProcessReasonError("failed to get balance value, %s, %q: %w", fact.Sender(), fact.Currency(), err), nil
+	//case b.Big().Compare(fee) < 0:
+	//	return nil, base.NewBaseOperationProcessReasonError("not enough balance of sender, %s, %q", fact.Sender(), fact.Currency()), nil
+	//}
+	//
+	//v, ok := sb.Value().(currency.BalanceStateValue)
+	//if !ok {
+	//	return nil, base.NewBaseOperationProcessReasonError("expected BalanceStateValue, not %T", sb.Value()), nil
+	//}
+	//sts[1] = currencystate.NewStateMergeValue(sb.Key(), currency.NewBalanceStateValue(v.Amount.WithBig(v.Amount.Big().Sub(fee))))
+
 	return sts, nil, nil
 }
 
-func (opp *CreateDAOProcessor) Close() error {
-	createDAOProcessorPool.Put(opp)
+func (opp *UpdateModelConfigProcessor) Close() error {
+	updateModelConfigProcessorPool.Put(opp)
 
 	return nil
 }

@@ -20,7 +20,7 @@ type RegisterFact struct {
 	sender     base.Address
 	contract   base.Address
 	proposalID string
-	delegated  base.Address
+	approved   base.Address
 	currency   currencytypes.CurrencyID
 }
 
@@ -29,7 +29,7 @@ func NewRegisterFact(
 	sender base.Address,
 	contract base.Address,
 	proposalID string,
-	delegated base.Address,
+	approved base.Address,
 	currency currencytypes.CurrencyID,
 ) RegisterFact {
 	bf := base.NewBaseFact(RegisterFactHint, token)
@@ -38,7 +38,7 @@ func NewRegisterFact(
 		sender:     sender,
 		contract:   contract,
 		proposalID: proposalID,
-		delegated:  delegated,
+		approved:   approved,
 		currency:   currency,
 	}
 	fact.SetHash(fact.GenerateHash())
@@ -60,7 +60,7 @@ func (fact RegisterFact) Bytes() []byte {
 		fact.sender.Bytes(),
 		fact.contract.Bytes(),
 		[]byte(fact.proposalID),
-		fact.delegated.Bytes(),
+		fact.approved.Bytes(),
 		fact.currency.Bytes(),
 	)
 }
@@ -74,7 +74,7 @@ func (fact RegisterFact) IsValid(b []byte) error {
 		fact.sender,
 		fact.contract,
 		fact.currency,
-		fact.delegated,
+		fact.approved,
 	); err != nil {
 		return common.ErrFactInvalid.Wrap(err)
 	}
@@ -118,8 +118,8 @@ func (fact RegisterFact) ProposalID() string {
 	return fact.proposalID
 }
 
-func (fact RegisterFact) Delegated() base.Address {
-	return fact.delegated
+func (fact RegisterFact) Approved() base.Address {
+	return fact.approved
 }
 
 func (fact RegisterFact) Currency() currencytypes.CurrencyID {
@@ -131,7 +131,7 @@ func (fact RegisterFact) Addresses() ([]base.Address, error) {
 
 	as[0] = fact.sender
 	as[1] = fact.contract
-	as[2] = fact.delegated
+	as[2] = fact.approved
 
 	return as, nil
 }

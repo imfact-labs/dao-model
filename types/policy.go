@@ -94,10 +94,10 @@ var PolicyHint = hint.MustNewHint("mitum-dao-policy-v0.0.1")
 
 type Policy struct {
 	hint.BaseHinter
-	token                currencytypes.CurrencyID
+	votingPowerToken     currencytypes.CurrencyID
 	threshold            common.Big
-	fee                  currencytypes.Amount
-	whitelist            Whitelist
+	proposalFee          currencytypes.Amount
+	proposerWhitelist    Whitelist
 	proposalReviewPeriod uint64
 	registrationPeriod   uint64
 	preSnapshotPeriod    uint64
@@ -118,10 +118,10 @@ func NewPolicy(
 ) Policy {
 	return Policy{
 		BaseHinter:           hint.NewBaseHinter(PolicyHint),
-		token:                token,
-		fee:                  fee,
+		votingPowerToken:     token,
+		proposalFee:          fee,
 		threshold:            threshold,
-		whitelist:            whitelist,
+		proposerWhitelist:    whitelist,
 		proposalReviewPeriod: proposalReviewPeriod,
 		registrationPeriod:   registrationPeriod,
 		preSnapshotPeriod:    preSnapshotPeriod,
@@ -135,10 +135,10 @@ func NewPolicy(
 
 func (po Policy) Bytes() []byte {
 	return util.ConcatBytesSlice(
-		po.token.Bytes(),
+		po.votingPowerToken.Bytes(),
 		po.threshold.Bytes(),
-		po.fee.Bytes(),
-		po.whitelist.Bytes(),
+		po.proposalFee.Bytes(),
+		po.proposerWhitelist.Bytes(),
 		util.Uint64ToBytes(po.proposalReviewPeriod),
 		util.Uint64ToBytes(po.registrationPeriod),
 		util.Uint64ToBytes(po.preSnapshotPeriod),
@@ -155,10 +155,10 @@ func (po Policy) IsValid([]byte) error {
 
 	if err := util.CheckIsValiders(nil, false,
 		po.BaseHinter,
-		po.token,
-		po.fee,
+		po.votingPowerToken,
+		po.proposalFee,
 		po.threshold,
-		po.whitelist,
+		po.proposerWhitelist,
 		po.turnout,
 		po.quorum,
 	); err != nil {
@@ -168,8 +168,8 @@ func (po Policy) IsValid([]byte) error {
 	return nil
 }
 
-func (po Policy) Token() currencytypes.CurrencyID {
-	return po.token
+func (po Policy) VotingPowerToken() currencytypes.CurrencyID {
+	return po.votingPowerToken
 }
 
 func (po Policy) Threshold() common.Big {
@@ -177,11 +177,11 @@ func (po Policy) Threshold() common.Big {
 }
 
 func (po Policy) Fee() currencytypes.Amount {
-	return po.fee
+	return po.proposalFee
 }
 
 func (po Policy) Whitelist() Whitelist {
-	return po.whitelist
+	return po.proposerWhitelist
 }
 
 func (po Policy) ProposalReviewPeriod() uint64 {

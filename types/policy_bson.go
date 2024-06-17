@@ -44,10 +44,10 @@ func (po Policy) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(
 		bson.M{
 			"_hint":                  po.Hint().String(),
-			"token":                  po.token,
+			"voting_power_token":     po.votingPowerToken,
 			"threshold":              po.threshold,
-			"fee":                    po.fee,
-			"whitelist":              po.whitelist,
+			"proposal_fee":           po.proposalFee,
+			"proposer_whitelist":     po.proposerWhitelist,
 			"proposal_review_period": po.proposalReviewPeriod,
 			"registration_period":    po.registrationPeriod,
 			"pre_snapshot_period":    po.preSnapshotPeriod,
@@ -62,10 +62,10 @@ func (po Policy) MarshalBSON() ([]byte, error) {
 
 type PolicyBSONUnmarshaler struct {
 	Hint                 string   `bson:"_hint"`
-	Token                string   `bson:"token"`
+	Token                string   `bson:"voting_power_token"`
 	Threshold            string   `bson:"threshold"`
-	Fee                  bson.Raw `bson:"fee"`
-	Whitelist            bson.Raw `bson:"whitelist"`
+	Fee                  bson.Raw `bson:"proposal_fee"`
+	Whitelist            bson.Raw `bson:"proposer_whitelist"`
 	ProposalReviewPeriod uint64   `bson:"proposal_review_period"`
 	RegistrationPeriod   uint64   `bson:"registration_period"`
 	PreSnapshotPeriod    uint64   `bson:"pre_snapshot_period"`

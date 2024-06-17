@@ -10,7 +10,7 @@ import (
 type DelegatorInfoJSONMarshaler struct {
 	hint.BaseHinter
 	Account   base.Address `json:"account"`
-	Delegatee base.Address `json:"delegatee"`
+	Delegatee base.Address `json:"approved"`
 }
 
 func (r DelegatorInfo) MarshalJSON() ([]byte, error) {
@@ -23,7 +23,7 @@ func (r DelegatorInfo) MarshalJSON() ([]byte, error) {
 
 type DelegatorInfoJSONUnmarshaler struct {
 	Account   string `json:"account"`
-	Delegatee string `json:"delegatee"`
+	Delegatee string `json:"approved"`
 }
 
 func (r *DelegatorInfo) DecodeJSON(b []byte, enc encoder.Encoder) error {

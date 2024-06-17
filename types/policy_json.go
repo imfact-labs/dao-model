@@ -44,10 +44,10 @@ func (wl *Whitelist) DecodeJSON(b []byte, enc encoder.Encoder) error {
 
 type PolicyJSONMarshaler struct {
 	hint.BaseHinter
-	Token                currencytypes.CurrencyID `json:"token"`
+	Token                currencytypes.CurrencyID `json:"voting_power_token"`
 	Threshold            common.Big               `json:"threshold"`
-	Fee                  currencytypes.Amount     `json:"fee"`
-	Whitelist            Whitelist                `json:"whitelist"`
+	Fee                  currencytypes.Amount     `json:"proposal_fee"`
+	Whitelist            Whitelist                `json:"proposer_whitelist"`
 	ProposalReviewPeriod uint64                   `json:"proposal_review_period"`
 	RegistrationPeriod   uint64                   `json:"registration_period"`
 	PreSnapshotPeriod    uint64                   `json:"pre_snapshot_period"`
@@ -61,10 +61,10 @@ type PolicyJSONMarshaler struct {
 func (po Policy) MarshalJSON() ([]byte, error) {
 	return util.MarshalJSON(PolicyJSONMarshaler{
 		BaseHinter:           po.BaseHinter,
-		Token:                po.token,
+		Token:                po.votingPowerToken,
 		Threshold:            po.threshold,
-		Fee:                  po.fee,
-		Whitelist:            po.whitelist,
+		Fee:                  po.proposalFee,
+		Whitelist:            po.proposerWhitelist,
 		ProposalReviewPeriod: po.proposalReviewPeriod,
 		RegistrationPeriod:   po.registrationPeriod,
 		PreSnapshotPeriod:    po.preSnapshotPeriod,
@@ -78,10 +78,10 @@ func (po Policy) MarshalJSON() ([]byte, error) {
 
 type PolicyJSONUnmarshaler struct {
 	Hint                 hint.Hint       `json:"_hint"`
-	Token                string          `json:"token"`
+	Token                string          `json:"voting_power_token"`
 	Threshold            string          `json:"threshold"`
-	Fee                  json.RawMessage `json:"fee"`
-	Whitelist            json.RawMessage `json:"whitelist"`
+	Fee                  json.RawMessage `json:"proposal_fee"`
+	Whitelist            json.RawMessage `json:"proposer_whitelist"`
 	ProposalReviewPeriod uint64          `json:"proposal_review_period"`
 	RegistrationPeriod   uint64          `json:"registration_period"`
 	PreSnapshotPeriod    uint64          `json:"pre_snapshot_period"`

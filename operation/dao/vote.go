@@ -20,7 +20,7 @@ type VoteFact struct {
 	sender     base.Address
 	contract   base.Address
 	proposalID string
-	vote       uint8
+	voteOption uint8
 	currency   currencytypes.CurrencyID
 }
 
@@ -29,7 +29,7 @@ func NewVoteFact(
 	sender base.Address,
 	contract base.Address,
 	proposalID string,
-	vote uint8,
+	voteOption uint8,
 	currency currencytypes.CurrencyID,
 ) VoteFact {
 	bf := base.NewBaseFact(VoteFactHint, token)
@@ -38,7 +38,7 @@ func NewVoteFact(
 		sender:     sender,
 		contract:   contract,
 		proposalID: proposalID,
-		vote:       vote,
+		voteOption: voteOption,
 		currency:   currency,
 	}
 	fact.SetHash(fact.GenerateHash())
@@ -60,7 +60,7 @@ func (fact VoteFact) Bytes() []byte {
 		fact.sender.Bytes(),
 		fact.contract.Bytes(),
 		[]byte(fact.proposalID),
-		util.Uint8ToBytes(fact.vote),
+		util.Uint8ToBytes(fact.voteOption),
 		fact.currency.Bytes(),
 	)
 }
@@ -117,8 +117,8 @@ func (fact VoteFact) ProposalID() string {
 	return fact.proposalID
 }
 
-func (fact VoteFact) Vote() uint8 {
-	return fact.vote
+func (fact VoteFact) VoteOption() uint8 {
+	return fact.voteOption
 }
 
 func (fact VoteFact) Currency() currencytypes.CurrencyID {

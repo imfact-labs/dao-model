@@ -40,7 +40,7 @@ func (po *Policy) unpack(enc encoder.Encoder, ht hint.Hint,
 	e := util.StringError("failed to unmarshal Policy")
 
 	po.BaseHinter = hint.NewBaseHinter(ht)
-	po.token = currencytypes.CurrencyID(cr)
+	po.votingPowerToken = currencytypes.CurrencyID(cr)
 	po.proposalReviewPeriod = rvp
 	po.registrationPeriod = rgp
 	po.preSnapshotPeriod = prsp
@@ -61,7 +61,7 @@ func (po *Policy) unpack(enc encoder.Encoder, ht hint.Hint,
 	} else if am, ok := hinter.(currencytypes.Amount); !ok {
 		return e.Wrap(errors.Errorf("expected Amount, not %T", hinter))
 	} else {
-		po.fee = am
+		po.proposalFee = am
 	}
 
 	if hinter, err := enc.Decode(bw); err != nil {
@@ -69,7 +69,7 @@ func (po *Policy) unpack(enc encoder.Encoder, ht hint.Hint,
 	} else if wl, ok := hinter.(Whitelist); !ok {
 		return e.Wrap(errors.Errorf("expected Whitelist, not %T", hinter))
 	} else {
-		po.whitelist = wl
+		po.proposerWhitelist = wl
 	}
 
 	return nil

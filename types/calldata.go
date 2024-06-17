@@ -127,5 +127,5 @@ func (cd GovernanceCallData) IsValid([]byte) error {
 }
 
 func (cd GovernanceCallData) Addresses() []base.Address {
-	return cd.policy.whitelist.accounts
+	return cd.policy.proposerWhitelist.accounts
 }

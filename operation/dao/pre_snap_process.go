@@ -78,7 +78,7 @@ func (opp *PreSnapProcessor) PreProcess(
 				Errorf("%v", err)), nil
 	}
 
-	if err := currencystate.CheckExistsState(currency.StateKeyCurrencyDesign(fact.Currency()), getStateFunc); err != nil {
+	if err := currencystate.CheckExistsState(currency.DesignStateKey(fact.Currency()), getStateFunc); err != nil {
 		return ctx, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.Wrap(common.ErrMCurrencyNF).Errorf("currency id, %v", fact.Currency())), nil
 	}
@@ -221,7 +221,7 @@ func (opp *PreSnapProcessor) Process(
 		}
 
 		senderBalSt, err := currencystate.ExistsState(
-			currency.StateKeyBalance(fact.Sender(), fact.Currency()),
+			currency.BalanceStateKey(fact.Sender(), fact.Currency()),
 			"key of sender balance",
 			getStateFunc,
 		)
@@ -237,7 +237,7 @@ func (opp *PreSnapProcessor) Process(
 		case err != nil:
 			return nil, base.NewBaseOperationProcessReasonError(
 				"failed to get balance value, %q; %w",
-				currency.StateKeyBalance(fact.Sender(), fact.Currency()),
+				currency.BalanceStateKey(fact.Sender(), fact.Currency()),
 				err,
 			), nil
 		case senderBal.Big().Compare(fee) < 0:
@@ -253,9 +253,9 @@ func (opp *PreSnapProcessor) Process(
 		}
 
 		if currencyPolicy.Feeer().Receiver() != nil {
-			if err := currencystate.CheckExistsState(currency.StateKeyAccount(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
+			if err := currencystate.CheckExistsState(currency.AccountStateKey(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
 				return nil, nil, err
-			} else if feeRcvrSt, found, err := getStateFunc(currency.StateKeyBalance(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
+			} else if feeRcvrSt, found, err := getStateFunc(currency.BalanceStateKey(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
 				return nil, nil, err
 			} else if !found {
 				return nil, nil, errors.Errorf("feeer receiver %s not found", currencyPolicy.Feeer().Receiver())
@@ -307,7 +307,7 @@ func (opp *PreSnapProcessor) Process(
 		votingPowerBox = types.NewVotingPowerBox(common.ZeroBig, map[string]types.VotingPower{})
 	}
 
-	votingPowerToken := p.Policy().Token()
+	votingPowerToken := p.Policy().VotingPowerToken()
 
 	switch st, found, err := getStateFunc(state.StateKeyVoters(fact.Contract(), fact.ProposalID())); {
 	case err != nil:
@@ -324,7 +324,7 @@ func (opp *PreSnapProcessor) Process(
 			votingPower := common.ZeroBig
 
 			for _, delegator := range info.Delegators() {
-				st, err = currencystate.ExistsState(currency.StateKeyBalance(delegator, votingPowerToken), "key of balance", getStateFunc)
+				st, err = currencystate.ExistsState(currency.BalanceStateKey(delegator, votingPowerToken), "key of balance", getStateFunc)
 				if err != nil {
 					continue
 				}
@@ -352,17 +352,17 @@ func (opp *PreSnapProcessor) Process(
 		votingPowerBox.SetTotal(total)
 	}
 
-	st, err = currencystate.ExistsState(currency.StateKeyCurrencyDesign(votingPowerToken), "key of currency design", getStateFunc)
+	st, err = currencystate.ExistsState(currency.DesignStateKey(votingPowerToken), "key of currency design", getStateFunc)
 	if err != nil {
 		return nil, base.NewBaseOperationProcessReasonError("failed to find voting power token currency design, %q: %w", votingPowerToken, err), nil
 	}
 
-	currencyDesign, err := currency.StateCurrencyDesignValue(st)
+	currencyDesign, err := currency.GetDesignFromState(st)
 	if err != nil {
 		return nil, base.NewBaseOperationProcessReasonError("failed to find voting power token currency design value from state, %q: %w", votingPowerToken, err), nil
 	}
 
-	actualTurnoutCount := p.Policy().Turnout().Quorum(currencyDesign.Aggregate())
+	actualTurnoutCount := p.Policy().Turnout().Quorum(currencyDesign.TotalSupply())
 	if votingPowerBox.Total().Compare(actualTurnoutCount) < 0 {
 		sts = append(sts, currencystate.NewStateMergeValue(
 			state.StateKeyProposal(fact.Contract(), fact.ProposalID()),

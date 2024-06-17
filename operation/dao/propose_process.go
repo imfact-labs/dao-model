@@ -140,7 +140,7 @@ func (opp *ProposeProcessor) PreProcess(
 				Errorf("dao option != proposal option, dao(%s) != proposal(%s)", design.Option(), fact.Proposal().Option())), nil
 	}
 
-	votingPowerToken := design.Policy().Token()
+	votingPowerToken := design.Policy().VotingPowerToken()
 	threshold := design.Policy().Threshold()
 	proposeFee := design.Policy().Fee()
 	whitelist := design.Policy().Whitelist()
@@ -157,7 +157,7 @@ func (opp *ProposeProcessor) PreProcess(
 	required[proposeFee.Currency().String()] = required[proposeFee.Currency().String()].Add(proposeFee.Big())
 
 	for k, v := range required {
-		st, err = currencystate.ExistsState(currency.StateKeyBalance(fact.Sender(), currencytypes.CurrencyID(k)), "sender balance", getStateFunc)
+		st, err = currencystate.ExistsState(currency.BalanceStateKey(fact.Sender(), currencytypes.CurrencyID(k)), "sender balance", getStateFunc)
 		if err != nil {
 			return nil, base.NewBaseOperationProcessReasonError(
 				common.ErrMPreProcess.Wrap(common.ErrMStateNF).
@@ -240,7 +240,7 @@ func (opp *ProposeProcessor) Process(
 		}
 
 		senderBalSt, err := currencystate.ExistsState(
-			currency.StateKeyBalance(fact.Sender(), fact.Currency()),
+			currency.BalanceStateKey(fact.Sender(), fact.Currency()),
 			"key of sender balance",
 			getStateFunc,
 		)
@@ -256,7 +256,7 @@ func (opp *ProposeProcessor) Process(
 		case err != nil:
 			return nil, base.NewBaseOperationProcessReasonError(
 				"failed to get balance value, %q; %w",
-				currency.StateKeyBalance(fact.Sender(), fact.Currency()),
+				currency.BalanceStateKey(fact.Sender(), fact.Currency()),
 				err,
 			), nil
 		case senderBal.Big().Compare(fee) < 0:
@@ -272,9 +272,9 @@ func (opp *ProposeProcessor) Process(
 		}
 
 		if currencyPolicy.Feeer().Receiver() != nil {
-			if err := currencystate.CheckExistsState(currency.StateKeyAccount(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
+			if err := currencystate.CheckExistsState(currency.AccountStateKey(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
 				return nil, nil, err
-			} else if feeRcvrSt, found, err := getStateFunc(currency.StateKeyBalance(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
+			} else if feeRcvrSt, found, err := getStateFunc(currency.BalanceStateKey(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
 				return nil, nil, err
 			} else if !found {
 				return nil, nil, errors.Errorf("feeer receiver %s not found", currencyPolicy.Feeer().Receiver())
@@ -302,7 +302,7 @@ func (opp *ProposeProcessor) Process(
 		}
 	}
 
-	st, err = currencystate.ExistsState(currency.StateKeyBalance(fact.Sender(), proposeFee.Currency()), "key of sender balance", getStateFunc)
+	st, err = currencystate.ExistsState(currency.BalanceStateKey(fact.Sender(), proposeFee.Currency()), "key of sender balance", getStateFunc)
 	if err != nil {
 		return nil, base.NewBaseOperationProcessReasonError("sender balance for propose fee not found, %s, %q: %w", fact.Sender(), proposeFee.Currency(), err), nil
 	}
@@ -323,7 +323,7 @@ func (opp *ProposeProcessor) Process(
 
 	var cBalance currencytypes.Amount
 	var cBalanceKey string
-	switch st, found, err := getStateFunc(currency.StateKeyBalance(fact.Contract(), proposeFee.Currency())); {
+	switch st, found, err := getStateFunc(currency.BalanceStateKey(fact.Contract(), proposeFee.Currency())); {
 	case err != nil:
 		return nil, base.NewBaseOperationProcessReasonError("contract account balance for propose fee not found, %s, %q: %w", fact.Contract(), proposeFee.Currency(), err), nil
 	case !found:

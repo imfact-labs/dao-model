@@ -31,10 +31,10 @@ func (fact *RegisterFact) unpack(enc encoder.Encoder,
 		case err != nil:
 			return err
 		default:
-			fact.delegated = a
+			fact.approved = a
 		}
 	} else {
-		fact.delegated = nil
+		fact.approved = nil
 	}
 
 	return nil

@@ -9,8 +9,8 @@ import (
 
 type VoterInfoJSONMarshaler struct {
 	hint.BaseHinter
-	Account    base.Address   `json:"account"`
-	Delegators []base.Address `json:"delegators"`
+	Account    base.Address   `json:"voter"`
+	Delegators []base.Address `json:"voting_power_holders"`
 }
 
 func (r VoterInfo) MarshalJSON() ([]byte, error) {
@@ -22,8 +22,8 @@ func (r VoterInfo) MarshalJSON() ([]byte, error) {
 }
 
 type VoterInfoJSONUnmarshaler struct {
-	Account    string   `json:"account"`
-	Delegators []string `json:"delegators"`
+	Account    string   `json:"voter"`
+	Delegators []string `json:"voting_power_holders"`
 }
 
 func (r *VoterInfo) DecodeJSON(b []byte, enc encoder.Encoder) error {

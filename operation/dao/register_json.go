@@ -13,7 +13,7 @@ type RegisterFactJSONMarshaler struct {
 	Owner      base.Address             `json:"sender"`
 	Contract   base.Address             `json:"contract"`
 	ProposalID string                   `json:"proposal_id"`
-	Delegated  base.Address             `json:"delegated"`
+	Approved   base.Address             `json:"approved"`
 	Currency   currencytypes.CurrencyID `json:"currency"`
 }
 
@@ -23,7 +23,7 @@ func (fact RegisterFact) MarshalJSON() ([]byte, error) {
 		Owner:                 fact.sender,
 		Contract:              fact.contract,
 		ProposalID:            fact.proposalID,
-		Delegated:             fact.delegated,
+		Approved:              fact.approved,
 		Currency:              fact.currency,
 	})
 }
@@ -33,7 +33,7 @@ type RegisterFactJSONUnMarshaler struct {
 	Owner      string `json:"sender"`
 	Contract   string `json:"contract"`
 	ProposalID string `json:"proposal_id"`
-	Delegated  string `json:"delegated"`
+	Approved   string `json:"approved"`
 	Currency   string `json:"currency"`
 }
 
@@ -48,7 +48,7 @@ func (fact *RegisterFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
 		uf.Owner,
 		uf.Contract,
 		uf.ProposalID,
-		uf.Delegated,
+		uf.Approved,
 		uf.Currency,
 	); err != nil {
 		return common.DecorateError(err, common.ErrDecodeJson, *fact)

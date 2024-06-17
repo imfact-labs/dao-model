@@ -65,7 +65,7 @@ func (bs *BlockSession) prepareDAO() error {
 }
 
 func (bs *BlockSession) handleDAODesignState(st mitumbase.State) ([]mongo.WriteModel, error) {
-	if designDoc, err := NewDAODesignDoc(st, bs.st.DatabaseEncoder()); err != nil {
+	if designDoc, err := NewDAODesignDoc(st, bs.st.Encoder()); err != nil {
 		return nil, err
 	} else {
 		return []mongo.WriteModel{
@@ -75,7 +75,7 @@ func (bs *BlockSession) handleDAODesignState(st mitumbase.State) ([]mongo.WriteM
 }
 
 func (bs *BlockSession) handleDAOProposalState(st mitumbase.State) ([]mongo.WriteModel, error) {
-	if nftCollectionDoc, err := NewDAOProposalDoc(st, bs.st.DatabaseEncoder()); err != nil {
+	if nftCollectionDoc, err := NewDAOProposalDoc(st, bs.st.Encoder()); err != nil {
 		return nil, err
 	} else {
 		return []mongo.WriteModel{
@@ -85,7 +85,7 @@ func (bs *BlockSession) handleDAOProposalState(st mitumbase.State) ([]mongo.Writ
 }
 
 func (bs *BlockSession) handleDAODelegatorsState(st mitumbase.State) ([]mongo.WriteModel, error) {
-	if delegatorsDoc, err := NewDAODelegatorsDoc(st, bs.st.DatabaseEncoder()); err != nil {
+	if delegatorsDoc, err := NewDAODelegatorsDoc(st, bs.st.Encoder()); err != nil {
 		return nil, err
 	} else {
 		return []mongo.WriteModel{
@@ -95,7 +95,7 @@ func (bs *BlockSession) handleDAODelegatorsState(st mitumbase.State) ([]mongo.Wr
 }
 
 func (bs *BlockSession) handleDAOVotersState(st mitumbase.State) ([]mongo.WriteModel, error) {
-	if votersDoc, err := NewDAOVotersDoc(st, bs.st.DatabaseEncoder()); err != nil {
+	if votersDoc, err := NewDAOVotersDoc(st, bs.st.Encoder()); err != nil {
 		return nil, err
 	} else {
 		return []mongo.WriteModel{
@@ -105,7 +105,7 @@ func (bs *BlockSession) handleDAOVotersState(st mitumbase.State) ([]mongo.WriteM
 }
 
 func (bs *BlockSession) handleDAOVotingPowerBoxState(st mitumbase.State) ([]mongo.WriteModel, error) {
-	if nftLastIndexDoc, err := NewDAOVotingPowerBoxDoc(st, bs.st.DatabaseEncoder()); err != nil {
+	if nftLastIndexDoc, err := NewDAOVotingPowerBoxDoc(st, bs.st.Encoder()); err != nil {
 		return nil, err
 	} else {
 		return []mongo.WriteModel{

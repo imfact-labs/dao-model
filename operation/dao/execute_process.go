@@ -78,7 +78,7 @@ func (opp *ExecuteProcessor) PreProcess(
 				Errorf("%v", err)), nil
 	}
 
-	if err := crcystate.CheckExistsState(currency.StateKeyCurrencyDesign(fact.Currency()), getStateFunc); err != nil {
+	if err := crcystate.CheckExistsState(currency.DesignStateKey(fact.Currency()), getStateFunc); err != nil {
 		return ctx, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.Wrap(common.ErrMCurrencyNF).Errorf("currency id %q", fact.Currency())), nil
 	}
@@ -223,7 +223,7 @@ func (opp *ExecuteProcessor) Process(
 		}
 
 		senderBalSt, err := crcystate.ExistsState(
-			currency.StateKeyBalance(fact.Sender(), fact.Currency()),
+			currency.BalanceStateKey(fact.Sender(), fact.Currency()),
 			"key of sender balance",
 			getStateFunc,
 		)
@@ -239,7 +239,7 @@ func (opp *ExecuteProcessor) Process(
 		case err != nil:
 			return nil, base.NewBaseOperationProcessReasonError(
 				"failed to get balance value, %q; %w",
-				currency.StateKeyBalance(fact.Sender(), fact.Currency()),
+				currency.BalanceStateKey(fact.Sender(), fact.Currency()),
 				err,
 			), nil
 		case senderBal.Big().Compare(fee) < 0:
@@ -255,9 +255,9 @@ func (opp *ExecuteProcessor) Process(
 		}
 
 		if currencyPolicy.Feeer().Receiver() != nil {
-			if err := crcystate.CheckExistsState(currency.StateKeyAccount(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
+			if err := crcystate.CheckExistsState(currency.AccountStateKey(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
 				return nil, nil, err
-			} else if feeRcvrSt, found, err := getStateFunc(currency.StateKeyBalance(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
+			} else if feeRcvrSt, found, err := getStateFunc(currency.BalanceStateKey(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
 				return nil, nil, err
 			} else if !found {
 				return nil, nil, errors.Errorf("feeer receiver %s not found", currencyPolicy.Feeer().Receiver())
@@ -311,15 +311,15 @@ func (opp *ExecuteProcessor) Process(
 				return nil, base.NewBaseOperationProcessReasonError("expected TransferCalldata, not %T", cp.CallData()), nil
 			}
 
-			if err := crcystate.CheckExistsState(currency.StateKeyAccount(cd.Sender()), getStateFunc); err != nil {
+			if err := crcystate.CheckExistsState(currency.AccountStateKey(cd.Sender()), getStateFunc); err != nil {
 				return nil, base.NewBaseOperationProcessReasonError("calldata sender not found, %s: %w", cd.Sender(), err), nil
 			}
 
-			if err := crcystate.CheckExistsState(currency.StateKeyAccount(cd.Receiver()), getStateFunc); err != nil {
+			if err := crcystate.CheckExistsState(currency.AccountStateKey(cd.Receiver()), getStateFunc); err != nil {
 				return nil, base.NewBaseOperationProcessReasonError("calldata receiver not found, %s: %w", cd.Receiver(), err), nil
 			}
 
-			st, err = crcystate.ExistsState(currency.StateKeyBalance(cd.Sender(), cd.Amount().Currency()), "key of balance", getStateFunc)
+			st, err = crcystate.ExistsState(currency.BalanceStateKey(cd.Sender(), cd.Amount().Currency()), "key of balance", getStateFunc)
 			if err != nil {
 				return nil, base.NewBaseOperationProcessReasonError("failed to find calldata sender balance, %s, %q: %w", cd.Sender(), cd.Amount().Currency(), err), nil
 			}
@@ -337,7 +337,7 @@ func (opp *ExecuteProcessor) Process(
 					),
 				))
 
-				switch st, found, err := getStateFunc(currency.StateKeyBalance(cd.Receiver(), cd.Amount().Currency())); {
+				switch st, found, err := getStateFunc(currency.BalanceStateKey(cd.Receiver(), cd.Amount().Currency())); {
 				case err != nil:
 					return nil, base.NewBaseOperationProcessReasonError("failed to find calldata receiver balance, %s, %q: %w", cd.Receiver(), cd.Amount().Currency(), err), nil
 				case found:

@@ -34,25 +34,25 @@ var AddedHinters = []encoder.DecodeDetail{
 	{Hint: state.VotingPowerBoxStateValueHint, Instance: state.VotingPowerBoxStateValue{}},
 
 	{Hint: dao.CancelProposalHint, Instance: dao.CancelProposal{}},
-	{Hint: dao.CreateDAOHint, Instance: dao.CreateDAO{}},
+	{Hint: dao.RegisterModelHint, Instance: dao.RegisterModel{}},
 	{Hint: dao.ExecuteHint, Instance: dao.Execute{}},
 	{Hint: dao.PostSnapHint, Instance: dao.PostSnap{}},
 	{Hint: dao.PreSnapHint, Instance: dao.PreSnap{}},
 	{Hint: dao.ProposeHint, Instance: dao.Propose{}},
 	{Hint: dao.RegisterHint, Instance: dao.Register{}},
-	{Hint: dao.UpdatePolicyHint, Instance: dao.UpdatePolicy{}},
+	{Hint: dao.UpdateModelConfigHint, Instance: dao.UpdateModelConfig{}},
 	{Hint: dao.VoteHint, Instance: dao.Vote{}},
 }
 
 var AddedSupportedHinters = []encoder.DecodeDetail{
 	{Hint: dao.CancelProposalFactHint, Instance: dao.CancelProposalFact{}},
-	{Hint: dao.CreateDAOFactHint, Instance: dao.CreateDAOFact{}},
+	{Hint: dao.RegisterModelFactHint, Instance: dao.RegisterModelFact{}},
 	{Hint: dao.ExecuteFactHint, Instance: dao.ExecuteFact{}},
 	{Hint: dao.PostSnapFactHint, Instance: dao.PostSnapFact{}},
 	{Hint: dao.PreSnapFactHint, Instance: dao.PreSnapFact{}},
 	{Hint: dao.ProposeFactHint, Instance: dao.ProposeFact{}},
 	{Hint: dao.RegisterFactHint, Instance: dao.RegisterFact{}},
-	{Hint: dao.UpdatePolicyFactHint, Instance: dao.UpdatePolicyFact{}},
+	{Hint: dao.UpdateModelConfigFactHint, Instance: dao.UpdateModelConfigFact{}},
 	{Hint: dao.VoteFactHint, Instance: dao.VoteFact{}},
 }
 

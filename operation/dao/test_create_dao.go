@@ -10,7 +10,7 @@ import (
 )
 
 type TestCreateDAOProcessor struct {
-	*test.BaseTestOperationProcessorNoItem[CreateDAO]
+	*test.BaseTestOperationProcessorNoItem[RegisterModel]
 	option               daotypes.DAOOption
 	votingPowerToken     types.CurrencyID
 	threshold            common.Big
@@ -29,12 +29,12 @@ type TestCreateDAOProcessor struct {
 func NewTestCreateDAOProcessor(
 	tp *test.TestProcessor,
 ) TestCreateDAOProcessor {
-	t := test.NewBaseTestOperationProcessorNoItem[CreateDAO](tp)
+	t := test.NewBaseTestOperationProcessorNoItem[RegisterModel](tp)
 	return TestCreateDAOProcessor{BaseTestOperationProcessorNoItem: &t}
 }
 
 func (t *TestCreateDAOProcessor) Create() *TestCreateDAOProcessor {
-	t.Opr, _ = NewCreateDAOProcessor()(
+	t.Opr, _ = NewRegisterModelProcessor()(
 		base.GenesisHeight,
 		t.GetStateFunc,
 		nil, nil,
@@ -146,8 +146,8 @@ func (t *TestCreateDAOProcessor) MakeOperation(
 	sender base.Address, privatekey base.Privatekey,
 	contract base.Address, currency types.CurrencyID,
 ) *TestCreateDAOProcessor {
-	op := NewCreateDAO(
-		NewCreateDAOFact(
+	op := NewRegisterModel(
+		NewRegisterModelFact(
 			[]byte("token"),
 			sender,
 			contract,

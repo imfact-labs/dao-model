@@ -12,19 +12,19 @@ import (
 )
 
 var (
-	UpdatePolicyFactHint = hint.MustNewHint("mitum-dao-update-policy-operation-fact-v0.0.1")
-	UpdatePolicyHint     = hint.MustNewHint("mitum-dao-update-policy-operation-v0.0.1")
+	UpdateModelConfigFactHint = hint.MustNewHint("mitum-dao-update-model-config-operation-fact-v0.0.1")
+	UpdateModelConfigHint     = hint.MustNewHint("mitum-dao-update-model-config-operation-v0.0.1")
 )
 
-type UpdatePolicyFact struct {
+type UpdateModelConfigFact struct {
 	base.BaseFact
 	sender               base.Address
 	contract             base.Address
 	option               types.DAOOption
 	votingPowerToken     currencytypes.CurrencyID
 	threshold            common.Big
-	fee                  currencytypes.Amount
-	whitelist            types.Whitelist
+	proposalFee          currencytypes.Amount
+	proposerWhitelist    types.Whitelist
 	proposalReviewPeriod uint64
 	registrationPeriod   uint64
 	preSnapshotPeriod    uint64
@@ -36,7 +36,7 @@ type UpdatePolicyFact struct {
 	currency             currencytypes.CurrencyID
 }
 
-func NewUpdatePolicyFact(
+func NewUpdateModelConfigFact(
 	token []byte,
 	sender base.Address,
 	contract base.Address,
@@ -53,17 +53,17 @@ func NewUpdatePolicyFact(
 	executionDelayPeriod uint64,
 	turnout, quorum types.PercentRatio,
 	currency currencytypes.CurrencyID,
-) UpdatePolicyFact {
-	bf := base.NewBaseFact(UpdatePolicyFactHint, token)
-	fact := UpdatePolicyFact{
+) UpdateModelConfigFact {
+	bf := base.NewBaseFact(UpdateModelConfigFactHint, token)
+	fact := UpdateModelConfigFact{
 		BaseFact:             bf,
 		sender:               sender,
 		contract:             contract,
 		option:               option,
 		votingPowerToken:     votingPowerToken,
 		threshold:            threshold,
-		fee:                  fee,
-		whitelist:            whitelist,
+		proposalFee:          fee,
+		proposerWhitelist:    whitelist,
 		proposalReviewPeriod: proposalReviewPeriod,
 		registrationPeriod:   registrationPeriod,
 		preSnapshotPeriod:    preSnapshotPeriod,
@@ -79,15 +79,15 @@ func NewUpdatePolicyFact(
 	return fact
 }
 
-func (fact UpdatePolicyFact) Hash() util.Hash {
+func (fact UpdateModelConfigFact) Hash() util.Hash {
 	return fact.BaseFact.Hash()
 }
 
-func (fact UpdatePolicyFact) GenerateHash() util.Hash {
+func (fact UpdateModelConfigFact) GenerateHash() util.Hash {
 	return valuehash.NewSHA256(fact.Bytes())
 }
 
-func (fact UpdatePolicyFact) Bytes() []byte {
+func (fact UpdateModelConfigFact) Bytes() []byte {
 	return util.ConcatBytesSlice(
 		fact.Token(),
 		fact.sender.Bytes(),
@@ -95,8 +95,8 @@ func (fact UpdatePolicyFact) Bytes() []byte {
 		fact.option.Bytes(),
 		fact.votingPowerToken.Bytes(),
 		fact.threshold.Bytes(),
-		fact.fee.Bytes(),
-		fact.whitelist.Bytes(),
+		fact.proposalFee.Bytes(),
+		fact.proposerWhitelist.Bytes(),
 		util.Uint64ToBytes(fact.proposalReviewPeriod),
 		util.Uint64ToBytes(fact.registrationPeriod),
 		util.Uint64ToBytes(fact.preSnapshotPeriod),
@@ -109,7 +109,7 @@ func (fact UpdatePolicyFact) Bytes() []byte {
 	)
 }
 
-func (fact UpdatePolicyFact) IsValid(b []byte) error {
+func (fact UpdateModelConfigFact) IsValid(b []byte) error {
 	if err := fact.BaseHinter.IsValid(nil); err != nil {
 		return common.ErrFactInvalid.Wrap(err)
 	}
@@ -119,9 +119,9 @@ func (fact UpdatePolicyFact) IsValid(b []byte) error {
 		fact.contract,
 		fact.votingPowerToken,
 		fact.option,
-		fact.fee,
+		fact.proposalFee,
 		fact.threshold,
-		fact.whitelist,
+		fact.proposerWhitelist,
 		fact.turnout,
 		fact.quorum,
 		fact.currency,
@@ -135,16 +135,16 @@ func (fact UpdatePolicyFact) IsValid(b []byte) error {
 				errors.Errorf("sender %v is same with contract account", fact.sender)))
 	}
 
-	for i := range fact.whitelist.Accounts() {
-		if fact.whitelist.Accounts()[i].Equal(fact.contract) {
+	for i := range fact.proposerWhitelist.Accounts() {
+		if fact.proposerWhitelist.Accounts()[i].Equal(fact.contract) {
 			return common.ErrFactInvalid.Wrap(
-				common.ErrSelfTarget.Wrap(errors.Errorf("whitelist account %v is same with contract account", fact.whitelist.Accounts()[i])))
+				common.ErrSelfTarget.Wrap(errors.Errorf("whitelist account %v is same with contract account", fact.proposerWhitelist.Accounts()[i])))
 		}
 	}
 
-	if !fact.fee.Big().OverNil() {
+	if !fact.proposalFee.Big().OverNil() {
 		return common.ErrFactInvalid.Wrap(
-			common.ErrValOOR.Wrap(errors.Errorf("fee amount must be bigger than or equal to zero, got %v", fact.fee.Big())))
+			common.ErrValOOR.Wrap(errors.Errorf("fee amount must be bigger than or equal to zero, got %v", fact.proposalFee.Big())))
 	}
 
 	if !fact.threshold.OverZero() {
@@ -183,96 +183,96 @@ func (fact UpdatePolicyFact) IsValid(b []byte) error {
 	return nil
 }
 
-func (fact UpdatePolicyFact) Token() base.Token {
+func (fact UpdateModelConfigFact) Token() base.Token {
 	return fact.BaseFact.Token()
 }
 
-func (fact UpdatePolicyFact) Sender() base.Address {
+func (fact UpdateModelConfigFact) Sender() base.Address {
 	return fact.sender
 }
 
-func (fact UpdatePolicyFact) Contract() base.Address {
+func (fact UpdateModelConfigFact) Contract() base.Address {
 	return fact.contract
 }
 
-func (fact UpdatePolicyFact) Option() types.DAOOption {
+func (fact UpdateModelConfigFact) Option() types.DAOOption {
 	return fact.option
 }
 
-func (fact UpdatePolicyFact) VotingPowerToken() currencytypes.CurrencyID {
+func (fact UpdateModelConfigFact) VotingPowerToken() currencytypes.CurrencyID {
 	return fact.votingPowerToken
 }
 
-func (fact UpdatePolicyFact) Fee() currencytypes.Amount {
-	return fact.fee
+func (fact UpdateModelConfigFact) ProposalFee() currencytypes.Amount {
+	return fact.proposalFee
 }
 
-func (fact UpdatePolicyFact) Threshold() common.Big {
+func (fact UpdateModelConfigFact) Threshold() common.Big {
 	return fact.threshold
 }
 
-func (fact UpdatePolicyFact) Whitelist() types.Whitelist {
-	return fact.whitelist
+func (fact UpdateModelConfigFact) Whitelist() types.Whitelist {
+	return fact.proposerWhitelist
 }
 
-func (fact UpdatePolicyFact) ProposalReviewPeriod() uint64 {
+func (fact UpdateModelConfigFact) ProposalReviewPeriod() uint64 {
 	return fact.proposalReviewPeriod
 }
 
-func (fact UpdatePolicyFact) RegistrationPeriod() uint64 {
+func (fact UpdateModelConfigFact) RegistrationPeriod() uint64 {
 	return fact.registrationPeriod
 }
 
-func (fact UpdatePolicyFact) PreSnapshotPeriod() uint64 {
+func (fact UpdateModelConfigFact) PreSnapshotPeriod() uint64 {
 	return fact.preSnapshotPeriod
 }
 
-func (fact UpdatePolicyFact) VotingPeriod() uint64 {
+func (fact UpdateModelConfigFact) VotingPeriod() uint64 {
 	return fact.votingPeriod
 }
 
-func (fact UpdatePolicyFact) PostSnapshotPeriod() uint64 {
+func (fact UpdateModelConfigFact) PostSnapshotPeriod() uint64 {
 	return fact.postSnapshotPeriod
 }
 
-func (fact UpdatePolicyFact) ExecutionDelayPeriod() uint64 {
+func (fact UpdateModelConfigFact) ExecutionDelayPeriod() uint64 {
 	return fact.executionDelayPeriod
 }
 
-func (fact UpdatePolicyFact) Turnout() types.PercentRatio {
+func (fact UpdateModelConfigFact) Turnout() types.PercentRatio {
 	return fact.turnout
 }
 
-func (fact UpdatePolicyFact) Quorum() types.PercentRatio {
+func (fact UpdateModelConfigFact) Quorum() types.PercentRatio {
 	return fact.quorum
 }
 
-func (fact UpdatePolicyFact) Currency() currencytypes.CurrencyID {
+func (fact UpdateModelConfigFact) Currency() currencytypes.CurrencyID {
 	return fact.currency
 }
 
-func (fact UpdatePolicyFact) Addresses() ([]base.Address, error) {
-	as := make([]base.Address, 2+len(fact.whitelist.Accounts()))
+func (fact UpdateModelConfigFact) Addresses() ([]base.Address, error) {
+	as := make([]base.Address, 2+len(fact.proposerWhitelist.Accounts()))
 
 	as[0] = fact.sender
 	as[1] = fact.contract
 
-	for i, ac := range fact.whitelist.Accounts() {
+	for i, ac := range fact.proposerWhitelist.Accounts() {
 		as[i+2] = ac
 	}
 
 	return as, nil
 }
 
-type UpdatePolicy struct {
+type UpdateModelConfig struct {
 	common.BaseOperation
 }
 
-func NewUpdatePolicy(fact UpdatePolicyFact) UpdatePolicy {
-	return UpdatePolicy{BaseOperation: common.NewBaseOperation(UpdatePolicyHint, fact)}
+func NewUpdateModelConfig(fact UpdateModelConfigFact) UpdateModelConfig {
+	return UpdateModelConfig{BaseOperation: common.NewBaseOperation(UpdateModelConfigHint, fact)}
 }
 
-func (op *UpdatePolicy) HashSign(priv base.Privatekey, networkID base.NetworkID) error {
+func (op *UpdateModelConfig) HashSign(priv base.Privatekey, networkID base.NetworkID) error {
 	err := op.Sign(priv, networkID)
 	if err != nil {
 		return err

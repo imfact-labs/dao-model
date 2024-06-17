@@ -121,7 +121,7 @@ func (doc DAODelegatorsDoc) MarshalBSON() ([]byte, error) {
 	m["contract"] = parsedKey[1]
 	m["proposal_id"] = parsedKey[2]
 	m["height"] = doc.st.Height()
-	m["delegators"] = doc.di
+	m["approved"] = doc.di
 
 	return bsonenc.Marshal(m)
 }

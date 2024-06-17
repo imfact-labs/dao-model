@@ -11,9 +11,9 @@ import (
 func (r DelegatorInfo) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(
 		bson.M{
-			"_hint":     r.Hint().String(),
-			"account":   r.account,
-			"delegatee": r.delegatee,
+			"_hint":    r.Hint().String(),
+			"account":  r.account,
+			"approved": r.delegatee,
 		},
 	)
 }
@@ -21,7 +21,7 @@ func (r DelegatorInfo) MarshalBSON() ([]byte, error) {
 type DelegatorInfoBSONUnmarshaler struct {
 	Hint      string `bson:"_hint"`
 	Account   string `bson:"account"`
-	Delegatee string `bson:"delegatee"`
+	Delegatee string `bson:"approved"`
 }
 
 func (r *DelegatorInfo) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {

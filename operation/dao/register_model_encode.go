@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (fact *CreateDAOFact) unpack(enc encoder.Encoder,
+func (fact *RegisterModelFact) unpack(enc encoder.Encoder,
 	sa, ca, op, tk, th string,
 	bf, bw []byte,
 	prp, rp, prsp, vp, psp, edp uint64,
@@ -53,7 +53,7 @@ func (fact *CreateDAOFact) unpack(enc encoder.Encoder,
 	} else if am, ok := hinter.(currencytypes.Amount); !ok {
 		return common.ErrTypeMismatch.Wrap(errors.Errorf("expected Amount, not %T", hinter))
 	} else {
-		fact.fee = am
+		fact.proposalFee = am
 	}
 
 	if hinter, err := enc.Decode(bw); err != nil {
@@ -61,7 +61,7 @@ func (fact *CreateDAOFact) unpack(enc encoder.Encoder,
 	} else if wl, ok := hinter.(types.Whitelist); !ok {
 		return common.ErrTypeMismatch.Wrap(errors.Errorf("expected Whitelist, not %T", hinter))
 	} else {
-		fact.whitelist = wl
+		fact.proposerWhitelist = wl
 	}
 
 	return nil

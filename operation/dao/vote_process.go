@@ -78,7 +78,7 @@ func (opp *VoteProcessor) PreProcess(
 				Errorf("%v", err)), nil
 	}
 
-	if err := currencystate.CheckExistsState(currency.StateKeyCurrencyDesign(fact.Currency()), getStateFunc); err != nil {
+	if err := currencystate.CheckExistsState(currency.DesignStateKey(fact.Currency()), getStateFunc); err != nil {
 		return ctx, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.Wrap(common.ErrMCurrencyNF).Errorf("currency id %q", fact.Currency())), nil
 	}
@@ -104,7 +104,7 @@ func (opp *VoteProcessor) PreProcess(
 				Errorf("%v", cErr)), nil
 	}
 
-	if err := currencystate.CheckExistsState(currency.StateKeyCurrencyDesign(fact.Currency()), getStateFunc); err != nil {
+	if err := currencystate.CheckExistsState(currency.DesignStateKey(fact.Currency()), getStateFunc); err != nil {
 		return ctx, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
 				Wrap(common.ErrMCurrencyNF).Errorf("fee currency id %q", fact.Currency())), nil
@@ -274,17 +274,17 @@ func (opp *VoteProcessor) Process(
 		return nil, base.NewBaseOperationProcessReasonError("sender voting power not found, sender(%s), %s, %q", fact.Sender(), fact.Contract(), fact.ProposalID()), nil
 	}
 	vp.SetVoted(true)
-	vp.SetVoteFor(fact.Vote())
+	vp.SetVoteFor(fact.VoteOption())
 
 	vpb := votingPowerBox.VotingPowers()
 	vpb[fact.Sender().String()] = vp
 	votingPowerBox.SetVotingPowers(vpb)
 
 	result := votingPowerBox.Result()
-	if _, found := result[fact.Vote()]; found {
-		result[fact.Vote()] = result[fact.Vote()].Add(vp.Amount())
+	if _, found := result[fact.VoteOption()]; found {
+		result[fact.VoteOption()] = result[fact.VoteOption()].Add(vp.Amount())
 	} else {
-		result[fact.Vote()] = common.ZeroBig.Add(vp.Amount())
+		result[fact.VoteOption()] = common.ZeroBig.Add(vp.Amount())
 	}
 	votingPowerBox.SetResult(result)
 
@@ -315,7 +315,7 @@ func (opp *VoteProcessor) Process(
 		}
 
 		senderBalSt, err := currencystate.ExistsState(
-			currency.StateKeyBalance(fact.Sender(), fact.Currency()),
+			currency.BalanceStateKey(fact.Sender(), fact.Currency()),
 			"key of sender balance",
 			getStateFunc,
 		)
@@ -331,7 +331,7 @@ func (opp *VoteProcessor) Process(
 		case err != nil:
 			return nil, base.NewBaseOperationProcessReasonError(
 				"failed to get balance value, %q; %w",
-				currency.StateKeyBalance(fact.Sender(), fact.Currency()),
+				currency.BalanceStateKey(fact.Sender(), fact.Currency()),
 				err,
 			), nil
 		case senderBal.Big().Compare(fee) < 0:
@@ -346,9 +346,9 @@ func (opp *VoteProcessor) Process(
 			return nil, base.NewBaseOperationProcessReasonError("expected BalanceStateValue, not %T", senderBalSt.Value()), nil
 		}
 
-		if err := currencystate.CheckExistsState(currency.StateKeyAccount(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
+		if err := currencystate.CheckExistsState(currency.AccountStateKey(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
 			return nil, nil, err
-		} else if feeRcvrSt, found, err := getStateFunc(currency.StateKeyBalance(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
+		} else if feeRcvrSt, found, err := getStateFunc(currency.BalanceStateKey(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
 			return nil, nil, err
 		} else if !found {
 			return nil, nil, errors.Errorf("feeer receiver %s not found", currencyPolicy.Feeer().Receiver())

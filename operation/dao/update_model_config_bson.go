@@ -9,7 +9,7 @@ import (
 	"github.com/ProtoconNet/mitum2/util/valuehash"
 )
 
-func (fact CreateDAOFact) MarshalBSON() ([]byte, error) {
+func (fact UpdateModelConfigFact) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(
 		bson.M{
 			"_hint":                  fact.Hint().String(),
@@ -18,8 +18,8 @@ func (fact CreateDAOFact) MarshalBSON() ([]byte, error) {
 			"option":                 fact.option,
 			"voting_power_token":     fact.votingPowerToken,
 			"threshold":              fact.threshold,
-			"fee":                    fact.fee,
-			"whitelist":              fact.whitelist,
+			"proposal_fee":           fact.proposalFee,
+			"proposer_whitelist":     fact.proposerWhitelist,
 			"proposal_review_period": fact.proposalReviewPeriod,
 			"registration_period":    fact.registrationPeriod,
 			"pre_snapshot_period":    fact.preSnapshotPeriod,
@@ -35,15 +35,15 @@ func (fact CreateDAOFact) MarshalBSON() ([]byte, error) {
 	)
 }
 
-type CreateDAOFactBSONUnmarshaler struct {
+type UpdateModelConfigFactBSONUnmarshaler struct {
 	Hint                 string   `bson:"_hint"`
 	Sender               string   `bson:"sender"`
 	Contract             string   `bson:"contract"`
 	Option               string   `bson:"option"`
 	VotingPowerToken     string   `bson:"voting_power_token"`
 	Threshold            string   `bson:"threshold"`
-	Fee                  bson.Raw `bson:"fee"`
-	Whitelist            bson.Raw `bson:"whitelist"`
+	ProposalFee          bson.Raw `bson:"proposal_fee"`
+	ProposerWhitelist    bson.Raw `bson:"proposer_whitelist"`
 	ProposalReviewPeriod uint64   `bson:"proposal_review_period"`
 	RegistrationPeriod   uint64   `bson:"registration_period"`
 	PreSnapshotPeriod    uint64   `bson:"pre_snapshot_period"`
@@ -55,7 +55,7 @@ type CreateDAOFactBSONUnmarshaler struct {
 	Currency             string   `bson:"currency"`
 }
 
-func (fact *CreateDAOFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
+func (fact *UpdateModelConfigFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 	var ubf common.BaseFactBSONUnmarshaler
 
 	if err := enc.Unmarshal(b, &ubf); err != nil {
@@ -65,7 +65,7 @@ func (fact *CreateDAOFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 	fact.BaseFact.SetHash(valuehash.NewBytesFromString(ubf.Hash))
 	fact.BaseFact.SetToken(ubf.Token)
 
-	var uf CreateDAOFactBSONUnmarshaler
+	var uf UpdateModelConfigFactBSONUnmarshaler
 	if err := bson.Unmarshal(b, &uf); err != nil {
 		return common.DecorateError(err, common.ErrDecodeBson, *fact)
 	}
@@ -81,8 +81,8 @@ func (fact *CreateDAOFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 		uf.Option,
 		uf.VotingPowerToken,
 		uf.Threshold,
-		uf.Fee,
-		uf.Whitelist,
+		uf.ProposalFee,
+		uf.ProposerWhitelist,
 		uf.ProposalReviewPeriod,
 		uf.RegistrationPeriod,
 		uf.PreSnapshotPeriod,
@@ -99,7 +99,7 @@ func (fact *CreateDAOFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 	return nil
 }
 
-func (op CreateDAO) MarshalBSON() ([]byte, error) {
+func (op UpdateModelConfig) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(
 		bson.M{
 			"_hint": op.Hint().String(),
@@ -109,7 +109,7 @@ func (op CreateDAO) MarshalBSON() ([]byte, error) {
 		})
 }
 
-func (op *CreateDAO) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
+func (op *UpdateModelConfig) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 	var ubo common.BaseOperation
 	if err := ubo.DecodeBSON(b, enc); err != nil {
 		return common.DecorateError(err, common.ErrDecodeBson, *op)

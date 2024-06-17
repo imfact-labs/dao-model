@@ -42,7 +42,7 @@ func CheckDuplication(opr *currencyprocessor.OperationProcessor, op mitumbase.Op
 		if !ok {
 			return errors.Errorf("expected UpdateKeyFact, not %T", t.Fact())
 		}
-		duplicationTypeSenderID = currencyprocessor.DuplicationKey(fact.Target().String(), DuplicationTypeSender)
+		duplicationTypeSenderID = currencyprocessor.DuplicationKey(fact.Sender().String(), DuplicationTypeSender)
 	case currency.Transfer:
 		fact, ok := t.Fact().(currency.TransferFact)
 		if !ok {
@@ -139,8 +139,8 @@ func GetNewProcessor(opr *currencyprocessor.OperationProcessor, op mitumbase.Ope
 		currency.RegisterCurrency,
 		currency.UpdateCurrency,
 		currency.Mint,
-		dao.CreateDAO,
-		dao.UpdatePolicy,
+		dao.RegisterModel,
+		dao.UpdateModelConfig,
 		dao.Propose,
 		dao.CancelProposal,
 		dao.Register,
