@@ -24,10 +24,10 @@ import (
 
 var (
 	HandlerPathDAOService        = `/dao/{contract:(?i)` + types.REStringAddressString + `}`
-	HandlerPathDAOProposal       = `/dao/{contract:(?i)` + types.REStringAddressString + `}/proposal/{proposal_id:\w+}`
-	HandlerPathDAODelegator      = `/dao/{contract:(?i)` + types.REStringAddressString + `}/proposal/{proposal_id:\w+}/registrant/{address:(?i)` + types.REStringAddressString + `}`
-	HandlerPathDAOVoters         = `/dao/{contract:(?i)` + types.REStringAddressString + `}/proposal/{proposal_id:\w+}/voter`
-	HandlerPathDAOVotingPowerBox = `/dao/{contract:(?i)` + types.REStringAddressString + `}/proposal/{proposal_id:\w+}/votingpower` // revive:disable-line:line-length-limit
+	HandlerPathDAOProposal       = `/dao/{contract:(?i)` + types.REStringAddressString + `}/proposal/{proposal_id:` + types.ReSpecialCh + `}`
+	HandlerPathDAODelegator      = `/dao/{contract:(?i)` + types.REStringAddressString + `}/proposal/{proposal_id:` + types.ReSpecialCh + `}/registrant/{address:(?i)` + types.REStringAddressString + `}`
+	HandlerPathDAOVoters         = `/dao/{contract:(?i)` + types.REStringAddressString + `}/proposal/{proposal_id:` + types.ReSpecialCh + `}/voter`
+	HandlerPathDAOVotingPowerBox = `/dao/{contract:(?i)` + types.REStringAddressString + `}/proposal/{proposal_id:` + types.ReSpecialCh + `}/votingpower` // revive:disable-line:line-length-limit
 )
 
 func init() {

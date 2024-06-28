@@ -83,10 +83,10 @@ func (fact RegisterFact) IsValid(b []byte) error {
 		return common.ErrFactInvalid.Wrap(common.ErrValOOR.Wrap(errors.Errorf("empty proposal ID")))
 	}
 
-	if !currencytypes.ReSpcecialChar.Match([]byte(fact.proposalID)) {
+	if !currencytypes.ReValidSpcecialCh.Match([]byte(fact.proposalID)) {
 		return common.ErrFactInvalid.Wrap(
 			common.ErrValueInvalid.Wrap(
-				errors.Errorf("proposal ID %v must match regex `^[^\\s:/?#\\[\\]@]*$`", fact.proposalID)))
+				errors.Errorf("proposal ID %v must match regex `^[^\\s:/?#\\[\\]$@]*$`", fact.proposalID)))
 	}
 
 	if fact.sender.Equal(fact.contract) {
