@@ -106,18 +106,27 @@ func (opp *RegisterModelProcessor) PreProcess(
 				Errorf("%v", cErr)), nil
 	}
 
-	for i := range fact.Whitelist().Accounts() {
-		if _, _, aErr, cErr := currencystate.ExistsCAccount(
-			fact.Whitelist().Accounts()[i], "whitelist", true, false, getStateFunc); aErr != nil {
-			return ctx, base.NewBaseOperationProcessReasonError(
-				common.ErrMPreProcess.
-					Errorf("%v", aErr)), nil
-		} else if cErr != nil {
+	whitelist := fact.Whitelist().Accounts()
+	for _, white := range whitelist {
+		if _, _, _, cErr := currencystate.ExistsCAccount(white, "whitelist", true, false, getStateFunc); cErr != nil {
 			return ctx, base.NewBaseOperationProcessReasonError(
 				common.ErrMPreProcess.Wrap(common.ErrMCAccountNA).
-					Errorf("%v", cErr)), nil
+					Errorf("%v: whitelist %v is contract account", cErr, white)), nil
 		}
 	}
+
+	//for i := range fact.Whitelist().Accounts() {
+	//	if _, _, aErr, cErr := currencystate.ExistsCAccount(
+	//		fact.Whitelist().Accounts()[i], "whitelist", true, false, getStateFunc); aErr != nil {
+	//		return ctx, base.NewBaseOperationProcessReasonError(
+	//			common.ErrMPreProcess.
+	//				Errorf("%v", aErr)), nil
+	//	} else if cErr != nil {
+	//		return ctx, base.NewBaseOperationProcessReasonError(
+	//			common.ErrMPreProcess.Wrap(common.ErrMCAccountNA).
+	//				Errorf("%v", cErr)), nil
+	//	}
+	//}
 
 	ca, err := stateextension.CheckCAAuthFromState(cSt, fact.Sender())
 	if err != nil {
@@ -196,6 +205,16 @@ func (opp *RegisterModelProcessor) Process(
 	}
 
 	var sts []base.StateMergeValue
+
+	whitelist := fact.Whitelist().Accounts()
+	for _, white := range whitelist {
+		smv, err := currencystate.CreateNotExistAccount(white, getStateFunc)
+		if err != nil {
+			return nil, base.NewBaseOperationProcessReasonError("%w", err), nil
+		} else if smv != nil {
+			sts = append(sts, smv)
+		}
+	}
 
 	sts = append(sts, currencystate.NewStateMergeValue(
 		state.StateKeyDesign(fact.Contract()),

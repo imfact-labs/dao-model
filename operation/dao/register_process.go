@@ -104,6 +104,13 @@ func (opp *RegisterProcessor) PreProcess(
 				Errorf("%v", cErr)), nil
 	}
 
+	if _, _, _, cErr := currencystate.ExistsCAccount(
+		fact.Approved(), "approved", true, false, getStateFunc); cErr != nil {
+		return ctx, base.NewBaseOperationProcessReasonError(
+			common.ErrMPreProcess.Wrap(common.ErrMCAccountNA).
+				Errorf("%v: approved %v is contract account", cErr, fact.Approved())), nil
+	}
+
 	if st, err := currencystate.ExistsState(state.StateKeyDesign(fact.Contract()), "design", getStateFunc); err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
@@ -152,13 +159,13 @@ func (opp *RegisterProcessor) PreProcess(
 					Errorf("voters for proposal %q in contract account %v", fact.ProposalID(), fact.Contract())), nil
 		}
 
-		voter := types.VoterInfo{}
+		//voter := types.VoterInfo{}
 
 		for _, v := range voters {
 			if !fact.Approved().Equal(v.Account()) {
 				continue
 			}
-			for _, d := range voter.Delegators() {
+			for _, d := range v.Delegators() {
 				if fact.Sender().Equal(d) {
 					return nil, base.NewBaseOperationProcessReasonError(
 						common.ErrMPreProcess.Wrap(common.ErrMValueInvalid).
@@ -238,6 +245,13 @@ func (opp *RegisterProcessor) Process(
 	}
 
 	var sts []base.StateMergeValue
+
+	smv, err := currencystate.CreateNotExistAccount(fact.Approved(), getStateFunc)
+	if err != nil {
+		return nil, base.NewBaseOperationProcessReasonError("%w", err), nil
+	} else if smv != nil {
+		sts = append(sts, smv)
+	}
 
 	{ // caculate operation fee
 		currencyPolicy, err := currencystate.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
