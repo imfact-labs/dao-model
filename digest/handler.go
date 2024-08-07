@@ -118,19 +118,20 @@ func (hd *Handlers) Handler() http.Handler {
 }
 
 func (hd *Handlers) setHandlers() {
-	_ = hd.setHandler(HandlerPathDAOService, hd.handleDAOService, true).
+	get := 1000
+	_ = hd.setHandler(HandlerPathDAOService, hd.handleDAOService, true, get, get).
 		Methods(http.MethodOptions, "GET")
-	_ = hd.setHandler(HandlerPathDAOProposal, hd.handleDAOProposal, true).
+	_ = hd.setHandler(HandlerPathDAOProposal, hd.handleDAOProposal, true, get, get).
 		Methods(http.MethodOptions, "GET")
-	_ = hd.setHandler(HandlerPathDAODelegator, hd.handleDAODelegator, true).
+	_ = hd.setHandler(HandlerPathDAODelegator, hd.handleDAODelegator, true, get, get).
 		Methods(http.MethodOptions, "GET")
-	_ = hd.setHandler(HandlerPathDAOVoters, hd.handleDAOVoters, true).
+	_ = hd.setHandler(HandlerPathDAOVoters, hd.handleDAOVoters, true, get, get).
 		Methods(http.MethodOptions, "GET")
-	_ = hd.setHandler(HandlerPathDAOVotingPowerBox, hd.handleDAOVotingPowerBox, true).
+	_ = hd.setHandler(HandlerPathDAOVotingPowerBox, hd.handleDAOVotingPowerBox, true, get, get).
 		Methods(http.MethodOptions, "GET")
 }
 
-func (hd *Handlers) setHandler(prefix string, h network.HTTPHandlerFunc, useCache bool) *mux.Route {
+func (hd *Handlers) setHandler(prefix string, h network.HTTPHandlerFunc, useCache bool, rps, burst int) *mux.Route {
 	var handler http.Handler
 	if !useCache {
 		handler = http.HandlerFunc(h)
@@ -153,6 +154,8 @@ func (hd *Handlers) setHandler(prefix string, h network.HTTPHandlerFunc, useCach
 	} else {
 		route = hd.router.Name(name)
 	}
+
+	handler = currencydigest.RateLimiter(rps, burst)(handler)
 
 	/*
 		if rules, found := hd.rateLimit[prefix]; found {
