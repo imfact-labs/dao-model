@@ -315,7 +315,7 @@ func (opp *PostSnapProcessor) Process(
 
 	votedTotal := common.ZeroBig
 	votingResult := map[uint8]common.Big{}
-
+	// retrieve all voter information for the proposal
 	switch st, found, err := getStateFunc(state.StateKeyVoters(fact.Contract(), fact.ProposalID())); {
 	case err != nil:
 		return nil, base.NewBaseOperationProcessReasonError("failed to find voters state, %s, %q: %w", fact.Contract(), fact.ProposalID(), err), nil
@@ -327,12 +327,12 @@ func (opp *PostSnapProcessor) Process(
 
 		for _, info := range voters {
 			a := info.Account().String()
-
+			// if voter did not vote, do not update voting power
 			if !ovpb.VotingPowers()[a].Voted() {
 				nvps[a] = ovpb.VotingPowers()[a]
 				continue
 			}
-
+			// if voter voted, retrieve all delegated voting power from state
 			vp := common.ZeroBig
 			for _, delegator := range info.Delegators() {
 				st, err = currencystate.ExistsState(currency.BalanceStateKey(delegator, votingPowerToken), "key of balance", getStateFunc)
@@ -347,7 +347,7 @@ func (opp *PostSnapProcessor) Process(
 
 				vp = vp.Add(b.Big())
 			}
-
+			// compare registered voting power with current voting power, then use the smaller of the two.
 			ovp := ovpb.VotingPowers()[a]
 			if ovp.Amount().Compare(vp) < 0 {
 				nvps[a] = ovp
@@ -358,9 +358,9 @@ func (opp *PostSnapProcessor) Process(
 
 				nvps[a] = nvp
 			}
-
+			// count only the voting power of participated voter
 			nvt = nvt.Add(nvps[a].Amount())
-
+			// count voting result
 			if nvps[a].Voted() {
 				if _, found := votingResult[nvps[a].VoteFor()]; !found {
 					votingResult[nvps[a].VoteFor()] = common.ZeroBig
@@ -389,7 +389,7 @@ func (opp *PostSnapProcessor) Process(
 	if err != nil {
 		return nil, base.NewBaseOperationProcessReasonError("failed to find voting power token currency design value from state, %q: %w", votingPowerToken, err), nil
 	}
-
+	// calculate turnout from total supply and quorum from total voted
 	actualTurnoutCount := p.Policy().Turnout().Quorum(currencyDesign.TotalSupply())
 	actualQuorumCount := p.Policy().Quorum().Quorum(votedTotal)
 
@@ -424,7 +424,8 @@ func (opp *PostSnapProcessor) Process(
 		var count = 0
 		var mvp = common.ZeroBig
 		var i uint8 = 0
-
+		// check if the vote count for any option is bigger than actual quorum count.
+		// last vote option means abstention, so last option is excluded from vote counting.
 		for ; i < options; i++ {
 			if votingResult[i].Compare(actualQuorumCount) >= 0 {
 				if mvp.Compare(votingResult[i]) < 0 {
