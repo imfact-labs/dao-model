@@ -5,12 +5,8 @@ import (
 	"github.com/ProtoconNet/mitum-dao/state"
 	"github.com/ProtoconNet/mitum-dao/types"
 	mitumutil "github.com/ProtoconNet/mitum2/util"
-	"github.com/gorilla/mux"
 	"net/http"
-	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 func (hd *Handlers) handleDAOService(w http.ResponseWriter, r *http.Request) {
@@ -19,7 +15,7 @@ func (hd *Handlers) handleDAOService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contract, err, status := parseRequest(w, r, "contract")
+	contract, err, status := currencydigest.ParseRequest(w, r, "contract")
 	if err != nil {
 		currencydigest.HTTP2ProblemWithError(w, err, status)
 
@@ -70,14 +66,14 @@ func (hd *Handlers) handleDAOProposal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contract, err, status := parseRequest(w, r, "contract")
+	contract, err, status := currencydigest.ParseRequest(w, r, "contract")
 	if err != nil {
 		currencydigest.HTTP2ProblemWithError(w, err, status)
 
 		return
 	}
 
-	proposalID, err, status := parseRequest(w, r, "proposal_id")
+	proposalID, err, status := currencydigest.ParseRequest(w, r, "proposal_id")
 	if err != nil {
 		currencydigest.HTTP2ProblemWithError(w, err, status)
 		return
@@ -127,19 +123,19 @@ func (hd *Handlers) handleDAODelegator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contract, err, status := parseRequest(w, r, "contract")
+	contract, err, status := currencydigest.ParseRequest(w, r, "contract")
 	if err != nil {
 		currencydigest.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
-	proposalID, err, status := parseRequest(w, r, "proposal_id")
+	proposalID, err, status := currencydigest.ParseRequest(w, r, "proposal_id")
 	if err != nil {
 		currencydigest.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
-	delegator, err, status := parseRequest(w, r, "address")
+	delegator, err, status := currencydigest.ParseRequest(w, r, "address")
 	if err != nil {
 		currencydigest.HTTP2ProblemWithError(w, err, status)
 		return
@@ -197,13 +193,13 @@ func (hd *Handlers) handleDAOVoters(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contract, err, status := parseRequest(w, r, "contract")
+	contract, err, status := currencydigest.ParseRequest(w, r, "contract")
 	if err != nil {
 		currencydigest.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
-	proposalID, err, status := parseRequest(w, r, "proposal_id")
+	proposalID, err, status := currencydigest.ParseRequest(w, r, "proposal_id")
 	if err != nil {
 		currencydigest.HTTP2ProblemWithError(w, err, status)
 		return
@@ -255,13 +251,13 @@ func (hd *Handlers) handleDAOVotingPowerBox(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	contract, err, status := parseRequest(w, r, "contract")
+	contract, err, status := currencydigest.ParseRequest(w, r, "contract")
 	if err != nil {
 		currencydigest.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
-	proposalID, err, status := parseRequest(w, r, "proposal_id")
+	proposalID, err, status := currencydigest.ParseRequest(w, r, "proposal_id")
 	if err != nil {
 		currencydigest.HTTP2ProblemWithError(w, err, status)
 		return
@@ -311,17 +307,4 @@ func (hd *Handlers) buildDAOVotingPowerBoxHal(
 	hal := currencydigest.NewBaseHal(votingPowerBox, currencydigest.NewHalLink(h, nil))
 
 	return hal, nil
-}
-
-func parseRequest(_ http.ResponseWriter, r *http.Request, v string) (string, error, int) {
-	s, found := mux.Vars(r)[v]
-	if !found {
-		return "", errors.Errorf("empty %s", v), http.StatusNotFound
-	}
-
-	s = strings.TrimSpace(s)
-	if len(s) < 1 {
-		return "", errors.Errorf("empty %s", v), http.StatusBadRequest
-	}
-	return s, nil, http.StatusOK
 }
