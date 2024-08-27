@@ -365,7 +365,7 @@ func (opp *PostSnapProcessor) Process(
 				if _, found := votingResult[nvps[a].VoteFor()]; !found {
 					votingResult[nvps[a].VoteFor()] = common.ZeroBig
 				}
-				votingResult[nvps[a].VoteFor()] = votingResult[nvps[a].VoteFor()].Add(vp)
+				votingResult[nvps[a].VoteFor()] = votingResult[nvps[a].VoteFor()].Add(nvps[a].Amount())
 				votedTotal = votedTotal.Add(nvps[a].Amount())
 			}
 		}
