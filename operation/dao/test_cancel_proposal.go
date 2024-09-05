@@ -37,8 +37,9 @@ func NewTestCancelProposalProcessor(
 }
 
 func (t *TestCancelProposalProcessor) Create(bm []base.BlockMap) *TestCancelProposalProcessor {
-	t.Opr, _ = NewCancelProposalProcessor(func() (base.BlockMap, bool, error) { return bm[len(bm)-1], true, nil })(
+	t.Opr, _ = NewCancelProposalProcessor()(
 		base.GenesisHeight,
+		nil,
 		t.GetStateFunc,
 		nil, nil,
 	)

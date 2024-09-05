@@ -5,7 +5,6 @@ import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
 	"sync"
 
-	"github.com/ProtoconNet/mitum-currency/v3/operation/processor"
 	currencystate "github.com/ProtoconNet/mitum-currency/v3/state"
 	"github.com/ProtoconNet/mitum-currency/v3/state/currency"
 	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
@@ -30,12 +29,13 @@ func (CancelProposal) Process(
 
 type CancelProposalProcessor struct {
 	*base.BaseOperationProcessor
-	getLastBlockFunc processor.GetLastBlockFunc
+	proposal *base.ProposalSignFact
 }
 
-func NewCancelProposalProcessor(getLastBlockFunc processor.GetLastBlockFunc) currencytypes.GetNewProcessor {
+func NewCancelProposalProcessor() currencytypes.GetNewProcessorWithProposal {
 	return func(
 		height base.Height,
+		proposal *base.ProposalSignFact,
 		getStateFunc base.GetStateFunc,
 		newPreProcessConstraintFunc base.NewOperationProcessorProcessFunc,
 		newProcessConstraintFunc base.NewOperationProcessorProcessFunc,
@@ -55,7 +55,7 @@ func NewCancelProposalProcessor(getLastBlockFunc processor.GetLastBlockFunc) cur
 		}
 
 		opp.BaseOperationProcessor = b
-		opp.getLastBlockFunc = getLastBlockFunc
+		opp.proposal = proposal
 
 		return opp, nil
 	}
@@ -182,21 +182,17 @@ func (opp *CancelProposalProcessor) Process(
 		return nil, base.NewBaseOperationProcessReasonError("proposal value not found from state, %s, %q: %w", fact.Contract(), fact.ProposalID(), err), nil
 	}
 
-	blockMap, found, err := opp.getLastBlockFunc()
-	if err != nil {
-		return nil, base.NewBaseOperationProcessReasonError("get LastBlock failed: %w", err), nil
-	} else if !found {
-		return nil, base.NewBaseOperationProcessReasonError("LastBlock not found"), nil
-	}
+	proposal := *opp.proposal
+	nowTime := uint64(proposal.ProposalFact().ProposedAt().Unix())
 
-	period, start, _ := types.GetPeriodOfCurrentTime(p.Policy(), p.Proposal(), types.Voting, blockMap)
+	period, start, _ := types.GetPeriodOfCurrentTime(p.Policy(), p.Proposal(), types.Voting, nowTime)
 	if !(period == types.PreLifeCycle || period == types.ProposalReview || period == types.Registration) {
-		return nil, base.NewBaseOperationProcessReasonError("cancellable period has passed; voting-started(%d), now(%d)", start, blockMap.Manifest().ProposedAt().Unix()), nil
+		return nil, base.NewBaseOperationProcessReasonError("cancellable period has passed; voting-started(%d), now(%d)", start, nowTime), nil
 	}
 
 	var sts []base.StateMergeValue
 
-	{ // caculate operation fee
+	{ //calculate operation fee
 		currencyPolicy, err := currencystate.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
 		if err != nil {
 			return nil, base.NewBaseOperationProcessReasonError("currency not found, %q; %w", fact.Currency(), err), nil
@@ -283,6 +279,7 @@ func (opp *CancelProposalProcessor) Process(
 }
 
 func (opp *CancelProposalProcessor) Close() error {
+	opp.proposal = nil
 	cancelProposalProcessorPool.Put(opp)
 
 	return nil

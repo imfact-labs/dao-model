@@ -195,9 +195,8 @@ func GetPeriodOfCurrentTime(
 	policy Policy,
 	proposal Proposal,
 	preferredPeriod Period,
-	blockmap base.BlockMap,
+	nowTime uint64,
 ) (Period, int64 /*period start time*/, int64 /*period end time*/) {
-	blockTime := uint64(blockmap.Manifest().ProposedAt().Unix())
 	startTime := proposal.StartTime()
 	registrationTime := startTime + policy.ProposalReviewPeriod()
 	preSnapTime := registrationTime + policy.RegistrationPeriod()
@@ -210,21 +209,21 @@ func GetPeriodOfCurrentTime(
 	preferredStart, preferredEnd := int64(0), int64(0)
 
 	switch {
-	case blockTime < startTime:
+	case nowTime < startTime:
 		currentPeriod = PreLifeCycle
-	case blockTime < registrationTime:
+	case nowTime < registrationTime:
 		currentPeriod = ProposalReview
-	case blockTime < preSnapTime:
+	case nowTime < preSnapTime:
 		currentPeriod = Registration
-	case blockTime < votingTime:
+	case nowTime < votingTime:
 		currentPeriod = PreSnapshot
-	case blockTime < postSnapTime:
+	case nowTime < postSnapTime:
 		currentPeriod = Voting
-	case blockTime < executionDelayTime:
+	case nowTime < executionDelayTime:
 		currentPeriod = PostSnapshot
-	case blockTime < executeTime:
+	case nowTime < executeTime:
 		currentPeriod = ExecutionDelay
-	case blockTime >= executeTime:
+	case nowTime >= executeTime:
 		currentPeriod = Execute
 	}
 

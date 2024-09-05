@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	"github.com/ProtoconNet/mitum-currency/v3/operation/processor"
 	crcystate "github.com/ProtoconNet/mitum-currency/v3/state"
 	"github.com/ProtoconNet/mitum-currency/v3/state/currency"
 	crcytypes "github.com/ProtoconNet/mitum-currency/v3/types"
@@ -30,12 +29,13 @@ func (Execute) Process(
 
 type ExecuteProcessor struct {
 	*base.BaseOperationProcessor
-	getLastBlockFunc processor.GetLastBlockFunc
+	proposal *base.ProposalSignFact
 }
 
-func NewExecuteProcessor(getLastBlockFunc processor.GetLastBlockFunc) crcytypes.GetNewProcessor {
+func NewExecuteProcessor() crcytypes.GetNewProcessorWithProposal {
 	return func(
 		height base.Height,
+		proposal *base.ProposalSignFact,
 		getStateFunc base.GetStateFunc,
 		newPreProcessConstraintFunc base.NewOperationProcessorProcessFunc,
 		newProcessConstraintFunc base.NewOperationProcessorProcessFunc,
@@ -55,7 +55,7 @@ func NewExecuteProcessor(getLastBlockFunc processor.GetLastBlockFunc) crcytypes.
 		}
 
 		opp.BaseOperationProcessor = b
-		opp.getLastBlockFunc = getLastBlockFunc
+		opp.proposal = proposal
 
 		return opp, nil
 	}
@@ -83,7 +83,8 @@ func (opp *ExecuteProcessor) PreProcess(
 			common.ErrMPreProcess.Wrap(common.ErrMCurrencyNF).Errorf("currency id %q", fact.Currency())), nil
 	}
 
-	if _, _, aErr, cErr := crcystate.ExistsCAccount(fact.Sender(), "sender", true, false, getStateFunc); aErr != nil {
+	if _, _, aErr, cErr := crcystate.ExistsCAccount(
+		fact.Sender(), "sender", true, false, getStateFunc); aErr != nil {
 		return ctx, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
 				Errorf("%v", aErr)), nil
@@ -93,7 +94,8 @@ func (opp *ExecuteProcessor) PreProcess(
 				Errorf("%v", cErr)), nil
 	}
 
-	_, _, aErr, cErr := crcystate.ExistsCAccount(fact.Contract(), "contract", true, true, getStateFunc)
+	_, _, aErr, cErr := crcystate.ExistsCAccount(
+		fact.Contract(), "contract", true, true, getStateFunc)
 	if aErr != nil {
 		return ctx, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
@@ -104,7 +106,8 @@ func (opp *ExecuteProcessor) PreProcess(
 				Errorf("%v", cErr)), nil
 	}
 
-	if st, err := crcystate.ExistsState(state.StateKeyDesign(fact.Contract()), "design", getStateFunc); err != nil {
+	if st, err := crcystate.ExistsState(state.StateKeyDesign(
+		fact.Contract()), "design", getStateFunc); err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
 				Wrap(common.ErrMServiceNF).Errorf("dao design state for contract account %v",
@@ -152,10 +155,13 @@ func (opp *ExecuteProcessor) PreProcess(
 					fact.ProposalID(), fact.Contract())), nil
 	}
 
-	if err := crcystate.CheckExistsState(state.StateKeyVotingPowerBox(fact.Contract(), fact.ProposalID()), getStateFunc); err != nil {
+	if err := crcystate.CheckExistsState(state.StateKeyVotingPowerBox(
+		fact.Contract(), fact.ProposalID()), getStateFunc); err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.Wrap(common.ErrMStateNF).
-				Errorf("voting power box of proposal %q in contract account %v", fact.ProposalID(), fact.Contract())), nil
+				Errorf("voting power box of proposal %q in contract account %v",
+					fact.ProposalID(), fact.Contract()),
+		), nil
 	}
 
 	if err := crcystate.CheckFactSignsByState(fact.Sender(), op.Signs(), getStateFunc); err != nil {
@@ -179,7 +185,8 @@ func (opp *ExecuteProcessor) Process(
 		return nil, nil, e.Errorf("expected ExecuteFact, not %T", op.Fact())
 	}
 
-	st, err := crcystate.ExistsState(state.StateKeyProposal(fact.Contract(), fact.ProposalID()), "proposal", getStateFunc)
+	st, err := crcystate.ExistsState(state.StateKeyProposal(
+		fact.Contract(), fact.ProposalID()), "proposal", getStateFunc)
 	if err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			"proposal not found, %s, %q: %w", fact.Contract(), fact.ProposalID(), err,
@@ -193,21 +200,20 @@ func (opp *ExecuteProcessor) Process(
 		), nil
 	}
 
-	blockMap, found, err := opp.getLastBlockFunc()
-	if err != nil {
-		return nil, base.NewBaseOperationProcessReasonError("get LastBlock failed: %w", err), nil
-	} else if !found {
-		return nil, base.NewBaseOperationProcessReasonError("LastBlock not found"), nil
-	}
+	proposal := *opp.proposal
+	nowTime := uint64(proposal.ProposalFact().ProposedAt().Unix())
 
-	period, start, end := types.GetPeriodOfCurrentTime(p.Policy(), p.Proposal(), types.Execute, blockMap)
+	period, start, end := types.GetPeriodOfCurrentTime(p.Policy(), p.Proposal(), types.Execute, nowTime)
 	if period != types.Execute {
-		return nil, base.NewBaseOperationProcessReasonError("current time is not within the Execution, Execution period; start(%d), end(%d), but now(%d)", start, end, blockMap.Manifest().ProposedAt().Unix()), nil
+		return nil, base.NewBaseOperationProcessReasonError(
+			"current time is not within the Execution, Execution period; start(%d), end(%d), but now(%d)",
+			start, end, nowTime,
+		), nil
 	}
 
 	var sts []base.StateMergeValue
 
-	{ // caculate operation fee
+	{ //calculate operation fee
 		currencyPolicy, err := crcystate.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
 		if err != nil {
 			return nil, base.NewBaseOperationProcessReasonError("currency not found, %q; %w", fact.Currency(), err), nil
@@ -251,20 +257,25 @@ func (opp *ExecuteProcessor) Process(
 
 		v, ok := senderBalSt.Value().(currency.BalanceStateValue)
 		if !ok {
-			return nil, base.NewBaseOperationProcessReasonError("expected BalanceStateValue, not %T", senderBalSt.Value()), nil
+			return nil, base.NewBaseOperationProcessReasonError(
+				"expected BalanceStateValue, not %T", senderBalSt.Value()), nil
 		}
 
 		if currencyPolicy.Feeer().Receiver() != nil {
-			if err := crcystate.CheckExistsState(currency.AccountStateKey(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
+			if err := crcystate.CheckExistsState(
+				currency.AccountStateKey(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
 				return nil, nil, err
-			} else if feeRcvrSt, found, err := getStateFunc(currency.BalanceStateKey(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
+			} else if feeRcvrSt, found, err := getStateFunc(
+				currency.BalanceStateKey(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
 				return nil, nil, err
 			} else if !found {
 				return nil, nil, errors.Errorf("feeer receiver %s not found", currencyPolicy.Feeer().Receiver())
 			} else if feeRcvrSt.Key() != senderBalSt.Key() {
 				r, ok := feeRcvrSt.Value().(currency.BalanceStateValue)
 				if !ok {
-					return nil, nil, errors.Errorf("expected %T, not %T", currency.BalanceStateValue{}, feeRcvrSt.Value())
+					return nil, nil, errors.Errorf(
+						"expected %T, not %T", currency.BalanceStateValue{}, feeRcvrSt.Value(),
+					)
 				}
 				sts = append(sts, common.NewBaseStateMergeValue(
 					feeRcvrSt.Key(),
@@ -308,25 +319,31 @@ func (opp *ExecuteProcessor) Process(
 		case types.CalldataTransfer:
 			cd, ok := cp.CallData().(types.TransferCallData)
 			if !ok {
-				return nil, base.NewBaseOperationProcessReasonError("expected TransferCalldata, not %T", cp.CallData()), nil
+				return nil, base.NewBaseOperationProcessReasonError(
+					"expected TransferCalldata, not %T", cp.CallData()), nil
 			}
 
 			if err := crcystate.CheckExistsState(currency.AccountStateKey(cd.Sender()), getStateFunc); err != nil {
-				return nil, base.NewBaseOperationProcessReasonError("calldata sender not found, %s: %w", cd.Sender(), err), nil
+				return nil, base.NewBaseOperationProcessReasonError(
+					"calldata sender not found, %s: %w", cd.Sender(), err), nil
 			}
 
 			if err := crcystate.CheckExistsState(currency.AccountStateKey(cd.Receiver()), getStateFunc); err != nil {
-				return nil, base.NewBaseOperationProcessReasonError("calldata receiver not found, %s: %w", cd.Receiver(), err), nil
+				return nil, base.NewBaseOperationProcessReasonError(
+					"calldata receiver not found, %s: %w", cd.Receiver(), err), nil
 			}
 
-			st, err = crcystate.ExistsState(currency.BalanceStateKey(cd.Sender(), cd.Amount().Currency()), "key of balance", getStateFunc)
+			st, err = crcystate.ExistsState(
+				currency.BalanceStateKey(cd.Sender(), cd.Amount().Currency()), "key of balance", getStateFunc)
 			if err != nil {
-				return nil, base.NewBaseOperationProcessReasonError("failed to find calldata sender balance, %s, %q: %w", cd.Sender(), cd.Amount().Currency(), err), nil
+				return nil, base.NewBaseOperationProcessReasonError(
+					"failed to find calldata sender balance, %s, %q: %w", cd.Sender(), cd.Amount().Currency(), err), nil
 			}
 
 			sb, err := currency.StateBalanceValue(st)
 			if err != nil {
-				return nil, base.NewBaseOperationProcessReasonError("failed to find calldata sender balance value, %s, %q: %w", cd.Sender(), cd.Amount().Currency(), err), nil
+				return nil, base.NewBaseOperationProcessReasonError(
+					"failed to find calldata sender balance value, %s, %q: %w", cd.Sender(), cd.Amount().Currency(), err), nil
 			}
 
 			if sb.Big().Compare(cd.Amount().Big()) >= 0 {
@@ -339,11 +356,14 @@ func (opp *ExecuteProcessor) Process(
 
 				switch st, found, err := getStateFunc(currency.BalanceStateKey(cd.Receiver(), cd.Amount().Currency())); {
 				case err != nil:
-					return nil, base.NewBaseOperationProcessReasonError("failed to find calldata receiver balance, %s, %q: %w", cd.Receiver(), cd.Amount().Currency(), err), nil
+					return nil, base.NewBaseOperationProcessReasonError(
+						"failed to find calldata receiver balance, %s, %q: %w", cd.Receiver(), cd.Amount().Currency(), err), nil
 				case found:
 					rb, err := currency.StateBalanceValue(st)
 					if err != nil {
-						return nil, base.NewBaseOperationProcessReasonError("failed to find calldata receiver balance value, %s, %q: %w", cd.Receiver(), cd.Amount().Currency(), err), nil
+						return nil, base.NewBaseOperationProcessReasonError(
+							"failed to find calldata receiver balance value, %s, %q: %w",
+							cd.Receiver(), cd.Amount().Currency(), err), nil
 					}
 
 					sts = append(sts, crcystate.NewStateMergeValue(
@@ -364,17 +384,20 @@ func (opp *ExecuteProcessor) Process(
 		case types.CalldataGovernance:
 			cd, ok := cp.CallData().(types.GovernanceCallData)
 			if !ok {
-				return nil, base.NewBaseOperationProcessReasonError("expected GovernanceCalldata, not %T", cp.CallData()), nil
+				return nil, base.NewBaseOperationProcessReasonError(
+					"expected GovernanceCalldata, not %T", cp.CallData()), nil
 			}
 
 			st, err := crcystate.ExistsState(state.StateKeyDesign(fact.Contract()), "key of design", getStateFunc)
 			if err != nil {
-				return nil, base.NewBaseOperationProcessReasonError("dao design not found, %s: %w", fact.Contract(), err), nil
+				return nil, base.NewBaseOperationProcessReasonError(
+					"dao design not found, %s: %w", fact.Contract(), err), nil
 			}
 
 			design, err := state.StateDesignValue(st)
 			if err != nil {
-				return nil, base.NewBaseOperationProcessReasonError("dao design value not found, %s: %w", fact.Contract(), err), nil
+				return nil, base.NewBaseOperationProcessReasonError(
+					"dao design value not found, %s: %w", fact.Contract(), err), nil
 			}
 
 			nd := types.NewDesign(design.Option(), cd.Policy())
@@ -388,7 +411,8 @@ func (opp *ExecuteProcessor) Process(
 				))
 			}
 		default:
-			return nil, base.NewBaseOperationProcessReasonError("invalid calldata, %s, %q", fact.Contract(), fact.ProposalID()), nil
+			return nil, base.NewBaseOperationProcessReasonError(
+				"invalid calldata, %s, %q", fact.Contract(), fact.ProposalID()), nil
 		}
 	}
 
@@ -396,6 +420,7 @@ func (opp *ExecuteProcessor) Process(
 }
 
 func (opp *ExecuteProcessor) Close() error {
+	opp.proposal = nil
 	executeProcessorPool.Put(opp)
 
 	return nil

@@ -19,8 +19,9 @@ func NewTestVoteProcessor(
 }
 
 func (t *TestVoteProcessor) Create(bm []base.BlockMap) *TestVoteProcessor {
-	t.Opr, _ = NewVoteProcessor(func() (base.BlockMap, bool, error) { return bm[len(bm)-1], true, nil })(
+	t.Opr, _ = NewVoteProcessor()(
 		base.GenesisHeight,
+		nil,
 		t.GetStateFunc,
 		nil, nil,
 	)

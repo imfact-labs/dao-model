@@ -19,8 +19,9 @@ func NewTestPreSnapProcessor(
 }
 
 func (t *TestPreSnapProcessor) Create(bm []base.BlockMap) *TestPreSnapProcessor {
-	t.Opr, _ = NewPreSnapProcessor(func() (base.BlockMap, bool, error) { return bm[len(bm)-1], true, nil })(
+	t.Opr, _ = NewPreSnapProcessor()(
 		base.GenesisHeight,
+		nil,
 		t.GetStateFunc,
 		nil, nil,
 	)

@@ -19,8 +19,9 @@ func NewTestExecuteProcessor(
 }
 
 func (t *TestExecuteProcessor) Create(bm []base.BlockMap) *TestExecuteProcessor {
-	t.Opr, _ = NewExecuteProcessor(func() (base.BlockMap, bool, error) { return bm[len(bm)-1], true, nil })(
+	t.Opr, _ = NewExecuteProcessor()(
 		base.GenesisHeight,
+		nil,
 		t.GetStateFunc,
 		nil, nil,
 	)

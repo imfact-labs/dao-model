@@ -19,8 +19,9 @@ func NewTestPostSnapProcessor(
 }
 
 func (t *TestPostSnapProcessor) Create(bm []base.BlockMap) *TestPostSnapProcessor {
-	t.Opr, _ = NewPostSnapProcessor(func() (base.BlockMap, bool, error) { return bm[len(bm)-1], true, nil })(
+	t.Opr, _ = NewPostSnapProcessor()(
 		base.GenesisHeight,
+		nil,
 		t.GetStateFunc,
 		nil, nil,
 	)

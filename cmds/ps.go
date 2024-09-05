@@ -21,13 +21,15 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 	var isaacParams *isaac.Params
 	var db isaac.Database
 	var opr *currencyprocessor.OperationProcessor
-	var set *hint.CompatibleSet[isaac.NewOperationProcessorInternalFunc]
+	var setA *hint.CompatibleSet[isaac.NewOperationProcessorInternalFunc]
+	var setB *hint.CompatibleSet[currencycmds.NewOperationProcessorInternalWithProposalFunc]
 
 	if err := util.LoadFromContextOK(pctx,
 		launch.ISAACParamsContextKey, &isaacParams,
 		launch.CenterDatabaseContextKey, &db,
 		currencycmds.OperationProcessorContextKey, &opr,
-		launch.OperationProcessorsMapContextKey, &set,
+		launch.OperationProcessorsMapContextKey, &setA,
+		currencycmds.OperationProcessorsMapBContextKey, &setB,
 	); err != nil {
 		return pctx, err
 	}
@@ -56,39 +58,39 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 		dao.NewProposeProcessor(),
 	); err != nil {
 		return pctx, err
-	} else if err := opr.SetProcessor(
+	} else if err := opr.SetProcessorWithProposal(
 		dao.CancelProposalHint,
-		dao.NewCancelProposalProcessor(db.LastBlockMap),
+		dao.NewCancelProposalProcessor(),
 	); err != nil {
 		return pctx, err
-	} else if err := opr.SetProcessor(
+	} else if err := opr.SetProcessorWithProposal(
 		dao.RegisterHint,
-		dao.NewRegisterProcessor(db.LastBlockMap),
+		dao.NewRegisterProcessor(),
 	); err != nil {
 		return pctx, err
-	} else if err := opr.SetProcessor(
+	} else if err := opr.SetProcessorWithProposal(
 		dao.PreSnapHint,
-		dao.NewPreSnapProcessor(db.LastBlockMap),
+		dao.NewPreSnapProcessor(),
 	); err != nil {
 		return pctx, err
-	} else if err := opr.SetProcessor(
+	} else if err := opr.SetProcessorWithProposal(
 		dao.VoteHint,
-		dao.NewVoteProcessor(db.LastBlockMap),
+		dao.NewVoteProcessor(),
 	); err != nil {
 		return pctx, err
-	} else if err := opr.SetProcessor(
+	} else if err := opr.SetProcessorWithProposal(
 		dao.PostSnapHint,
-		dao.NewPostSnapProcessor(db.LastBlockMap),
+		dao.NewPostSnapProcessor(),
 	); err != nil {
 		return pctx, err
-	} else if err := opr.SetProcessor(
+	} else if err := opr.SetProcessorWithProposal(
 		dao.ExecuteHint,
-		dao.NewExecuteProcessor(db.LastBlockMap),
+		dao.NewExecuteProcessor(),
 	); err != nil {
 		return pctx, err
 	}
 
-	_ = set.Add(dao.RegisterModelHint,
+	_ = setA.Add(dao.RegisterModelHint,
 		func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
 			return opr.New(
 				height,
@@ -98,7 +100,7 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 			)
 		})
 
-	_ = set.Add(dao.UpdateModelConfigHint,
+	_ = setA.Add(dao.UpdateModelConfigHint,
 		func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
 			return opr.New(
 				height,
@@ -108,7 +110,7 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 			)
 		})
 
-	_ = set.Add(dao.ProposeHint,
+	_ = setA.Add(dao.ProposeHint,
 		func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
 			return opr.New(
 				height,
@@ -118,8 +120,11 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 			)
 		})
 
-	_ = set.Add(dao.CancelProposalHint,
-		func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+	_ = setB.Add(dao.CancelProposalHint,
+		func(height base.Height, proposal base.ProposalSignFact, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+			if err := opr.SetProposal(&proposal); err != nil {
+				return nil, err
+			}
 			return opr.New(
 				height,
 				getStatef,
@@ -128,8 +133,11 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 			)
 		})
 
-	_ = set.Add(dao.RegisterHint,
-		func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+	_ = setB.Add(dao.RegisterHint,
+		func(height base.Height, proposal base.ProposalSignFact, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+			if err := opr.SetProposal(&proposal); err != nil {
+				return nil, err
+			}
 			return opr.New(
 				height,
 				getStatef,
@@ -138,8 +146,11 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 			)
 		})
 
-	_ = set.Add(dao.PreSnapHint,
-		func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+	_ = setB.Add(dao.PreSnapHint,
+		func(height base.Height, proposal base.ProposalSignFact, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+			if err := opr.SetProposal(&proposal); err != nil {
+				return nil, err
+			}
 			return opr.New(
 				height,
 				getStatef,
@@ -148,8 +159,11 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 			)
 		})
 
-	_ = set.Add(dao.VoteHint,
-		func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+	_ = setB.Add(dao.VoteHint,
+		func(height base.Height, proposal base.ProposalSignFact, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+			if err := opr.SetProposal(&proposal); err != nil {
+				return nil, err
+			}
 			return opr.New(
 				height,
 				getStatef,
@@ -158,8 +172,11 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 			)
 		})
 
-	_ = set.Add(dao.PostSnapHint,
-		func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+	_ = setB.Add(dao.PostSnapHint,
+		func(height base.Height, proposal base.ProposalSignFact, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+			if err := opr.SetProposal(&proposal); err != nil {
+				return nil, err
+			}
 			return opr.New(
 				height,
 				getStatef,
@@ -168,8 +185,11 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 			)
 		})
 
-	_ = set.Add(dao.ExecuteHint,
-		func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+	_ = setB.Add(dao.ExecuteHint,
+		func(height base.Height, proposal base.ProposalSignFact, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+			if err := opr.SetProposal(&proposal); err != nil {
+				return nil, err
+			}
 			return opr.New(
 				height,
 				getStatef,
@@ -179,7 +199,8 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 		})
 
 	pctx = context.WithValue(pctx, currencycmds.OperationProcessorContextKey, opr)
-	pctx = context.WithValue(pctx, launch.OperationProcessorsMapContextKey, set) //revive:disable-line:modifies-parameter
+	pctx = context.WithValue(pctx, launch.OperationProcessorsMapContextKey, setA)        //revive:disable-line:modifies-parameter
+	pctx = context.WithValue(pctx, currencycmds.OperationProcessorsMapBContextKey, setB) //revive:disable-line:modifies-parameter
 
 	return pctx, nil
 }

@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	"github.com/ProtoconNet/mitum-currency/v3/operation/processor"
 	currencystate "github.com/ProtoconNet/mitum-currency/v3/state"
 	"github.com/ProtoconNet/mitum-currency/v3/state/currency"
 	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
@@ -30,12 +29,13 @@ func (PostSnap) Process(
 
 type PostSnapProcessor struct {
 	*base.BaseOperationProcessor
-	getLastBlockFunc processor.GetLastBlockFunc
+	proposal *base.ProposalSignFact
 }
 
-func NewPostSnapProcessor(getLastBlockFunc processor.GetLastBlockFunc) currencytypes.GetNewProcessor {
+func NewPostSnapProcessor() currencytypes.GetNewProcessorWithProposal {
 	return func(
 		height base.Height,
+		proposal *base.ProposalSignFact,
 		getStateFunc base.GetStateFunc,
 		newPreProcessConstraintFunc base.NewOperationProcessorProcessFunc,
 		newProcessConstraintFunc base.NewOperationProcessorProcessFunc,
@@ -55,7 +55,7 @@ func NewPostSnapProcessor(getLastBlockFunc processor.GetLastBlockFunc) currencyt
 		}
 
 		opp.BaseOperationProcessor = b
-		opp.getLastBlockFunc = getLastBlockFunc
+		opp.proposal = proposal
 
 		return opp, nil
 	}
@@ -189,21 +189,17 @@ func (opp *PostSnapProcessor) Process(
 		return nil, base.NewBaseOperationProcessReasonError("proposal value not found from state, %s, %q: %w", fact.Contract(), fact.ProposalID(), err), nil
 	}
 
-	blockMap, found, err := opp.getLastBlockFunc()
-	if err != nil {
-		return nil, base.NewBaseOperationProcessReasonError("get LastBlock failed: %w", err), nil
-	} else if !found {
-		return nil, base.NewBaseOperationProcessReasonError("LastBlock not found"), nil
-	}
+	proposal := *opp.proposal
+	nowTime := uint64(proposal.ProposalFact().ProposedAt().Unix())
 
-	period, start, end := types.GetPeriodOfCurrentTime(p.Policy(), p.Proposal(), types.PostSnapshot, blockMap)
+	period, start, end := types.GetPeriodOfCurrentTime(p.Policy(), p.Proposal(), types.PostSnapshot, nowTime)
 	if period != types.PostSnapshot {
-		return nil, base.NewBaseOperationProcessReasonError("current time is not within the PostSnapshotPeriod, PostSnapshotPeriod; start(%d), end(%d), but now(%d)", start, end, blockMap.Manifest().ProposedAt().Unix()), nil
+		return nil, base.NewBaseOperationProcessReasonError("current time is not within the PostSnapshotPeriod, PostSnapshotPeriod; start(%d), end(%d), but now(%d)", start, end, nowTime), nil
 	}
 
 	var sts []base.StateMergeValue
 
-	{ // caculate operation fee
+	{ //calculate operation fee
 		currencyPolicy, err := currencystate.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
 		if err != nil {
 			return nil, base.NewBaseOperationProcessReasonError("currency not found, %q; %w", fact.Currency(), err), nil
@@ -389,7 +385,7 @@ func (opp *PostSnapProcessor) Process(
 	if err != nil {
 		return nil, base.NewBaseOperationProcessReasonError("failed to find voting power token currency design value from state, %q: %w", votingPowerToken, err), nil
 	}
-	// calculate turnout from total supply and quorum from total voted
+	//calculate turnout from total supply and quorum from total voted
 	actualTurnoutCount := p.Policy().Turnout().Quorum(currencyDesign.TotalSupply())
 	actualQuorumCount := p.Policy().Quorum().Quorum(votedTotal)
 
@@ -485,6 +481,7 @@ func (opp *PostSnapProcessor) Process(
 }
 
 func (opp *PostSnapProcessor) Close() error {
+	opp.proposal = nil
 	postSnapProcessorPool.Put(opp)
 
 	return nil

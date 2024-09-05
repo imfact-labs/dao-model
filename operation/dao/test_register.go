@@ -19,8 +19,9 @@ func NewTestRegisterProcessor(
 }
 
 func (t *TestRegisterProcessor) Create(bm []base.BlockMap) *TestRegisterProcessor {
-	t.Opr, _ = NewRegisterProcessor(func() (base.BlockMap, bool, error) { return bm[len(bm)-1], true, nil })(
+	t.Opr, _ = NewRegisterProcessor()(
 		base.GenesisHeight,
+		nil,
 		t.GetStateFunc,
 		nil, nil,
 	)

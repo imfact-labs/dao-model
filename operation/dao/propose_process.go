@@ -224,7 +224,7 @@ func (opp *ProposeProcessor) Process(
 		),
 	)
 
-	{ // caculate operation fee
+	{ //calculate operation fee
 		currencyPolicy, err := currencystate.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
 		if err != nil {
 			return nil, base.NewBaseOperationProcessReasonError("currency not found, %q; %w", fact.Currency(), err), nil
