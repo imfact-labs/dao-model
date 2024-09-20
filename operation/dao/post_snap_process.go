@@ -326,6 +326,7 @@ func (opp *PostSnapProcessor) Process(
 			// if voter did not vote, do not update voting power
 			if !ovpb.VotingPowers()[a].Voted() {
 				nvps[a] = ovpb.VotingPowers()[a]
+				nvt = nvt.Add(nvps[a].Amount())
 				continue
 			}
 			// if voter voted, retrieve all delegated voting power from state
@@ -392,9 +393,9 @@ func (opp *PostSnapProcessor) Process(
 	r := types.Rejected
 
 	switch {
-	case nvpb.Total().Compare(actualTurnoutCount) < 0:
+	case votedTotal.Compare(actualTurnoutCount) < 0:
 		r = types.Canceled
-	case votedTotal.Compare(actualQuorumCount) < 0:
+	case nvpb.Total().Compare(actualQuorumCount) < 0:
 	case p.Proposal().Option() == types.ProposalCrypto:
 		vr0, found0 := votingResult[0]
 		vr1, found1 := votingResult[1]
