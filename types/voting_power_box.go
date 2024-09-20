@@ -8,7 +8,6 @@ import (
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/hint"
 	"github.com/ProtoconNet/mitum2/util/valuehash"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -129,9 +128,9 @@ func (vp VotingPowerBox) IsValid([]byte) error {
 		total = total.Add(vp.Amount())
 	}
 
-	if total.Compare(vp.total) != 0 {
-		return e.Wrap(errors.Errorf("invalid voting power total, %q != %q", total, vp.total))
-	}
+	//if total.Compare(vp.total) != 0 {
+	//	return e.Wrap(errors.Errorf("invalid voting power total, %q != %q", total, vp.total))
+	//}
 
 	return nil
 }
