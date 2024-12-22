@@ -2,7 +2,8 @@ package dao
 
 import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum-dao/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
@@ -22,7 +23,7 @@ type ProposeFact struct {
 	contract   base.Address
 	proposalID string
 	proposal   types.Proposal
-	currency   currencytypes.CurrencyID
+	currency   ctypes.CurrencyID
 }
 
 func NewProposeFact(
@@ -31,7 +32,7 @@ func NewProposeFact(
 	contract base.Address,
 	proposalID string,
 	proposal types.Proposal,
-	currency currencytypes.CurrencyID,
+	currency ctypes.CurrencyID,
 ) ProposeFact {
 	bf := base.NewBaseFact(ProposeFactHint, token)
 	fact := ProposeFact{
@@ -95,7 +96,7 @@ func (fact ProposeFact) IsValid(b []byte) error {
 		return common.ErrFactInvalid.Wrap(common.ErrValOOR.Wrap(errors.Errorf("empty proposal ID")))
 	}
 
-	if !currencytypes.ReValidSpcecialCh.Match([]byte(fact.proposalID)) {
+	if !ctypes.ReValidSpcecialCh.Match([]byte(fact.proposalID)) {
 		return common.ErrFactInvalid.Wrap(
 			common.ErrValueInvalid.Wrap(common.ErrValueInvalid.Wrap(
 				errors.Errorf("proposal ID %v must match regex `^[^\\s:/?#\\[\\]$@]*$`", fact.proposalID))))
@@ -128,7 +129,7 @@ func (fact ProposeFact) Proposal() types.Proposal {
 	return fact.proposal
 }
 
-func (fact ProposeFact) Currency() currencytypes.CurrencyID {
+func (fact ProposeFact) Currency() ctypes.CurrencyID {
 	return fact.currency
 }
 
@@ -141,18 +142,35 @@ func (fact ProposeFact) Addresses() ([]base.Address, error) {
 	return as, nil
 }
 
+func (fact ProposeFact) FeeBase() map[ctypes.CurrencyID][]common.Big {
+	required := make(map[ctypes.CurrencyID][]common.Big)
+	required[fact.Currency()] = []common.Big{common.ZeroBig}
+
+	return required
+}
+
+func (fact ProposeFact) FeePayer() base.Address {
+	return fact.sender
+}
+
+func (fact ProposeFact) FactUser() base.Address {
+	return fact.sender
+}
+
+func (fact ProposeFact) Signer() base.Address {
+	return fact.sender
+}
+
+func (fact ProposeFact) ActiveContract() []base.Address {
+	return []base.Address{fact.contract}
+}
+
 type Propose struct {
-	common.BaseOperation
+	extras.ExtendedOperation
 }
 
 func NewPropose(fact ProposeFact) Propose {
-	return Propose{BaseOperation: common.NewBaseOperation(ProposeHint, fact)}
-}
-
-func (op *Propose) HashSign(priv base.Privatekey, networkID base.NetworkID) error {
-	err := op.Sign(priv, networkID)
-	if err != nil {
-		return err
+	return Propose{
+		ExtendedOperation: extras.NewExtendedOperation(ProposeHint, fact),
 	}
-	return nil
 }

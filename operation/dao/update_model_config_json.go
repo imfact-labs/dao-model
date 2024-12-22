@@ -2,9 +2,10 @@ package dao
 
 import (
 	"encoding/json"
+	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
 
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum-dao/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
@@ -13,22 +14,22 @@ import (
 
 type UpdateModelConfigFactJSONMarshaler struct {
 	base.BaseFactJSONMarshaler
-	Owner                base.Address             `json:"sender"`
-	Contract             base.Address             `json:"contract"`
-	Option               types.DAOOption          `json:"option"`
-	VotingPowerToken     currencytypes.CurrencyID `json:"voting_power_token"`
-	Threshold            common.Big               `json:"threshold"`
-	ProposalFee          currencytypes.Amount     `json:"proposal_fee"`
-	ProposerWhitelist    types.Whitelist          `json:"proposer_whitelist"`
-	ProposalReviewPeriod uint64                   `json:"proposal_review_period"`
-	RegistrationPeriod   uint64                   `json:"registration_period"`
-	PreSnapshotPeriod    uint64                   `json:"pre_snapshot_period"`
-	VotingPeriod         uint64                   `json:"voting_period"`
-	PostSnapshotPeriod   uint64                   `json:"post_snapshot_period"`
-	ExecutionDelayPeriod uint64                   `json:"execution_delay_period"`
-	Turnout              types.PercentRatio       `json:"turnout"`
-	Quorum               types.PercentRatio       `json:"quorum"`
-	Currency             currencytypes.CurrencyID `json:"currency"`
+	Owner                base.Address       `json:"sender"`
+	Contract             base.Address       `json:"contract"`
+	Option               types.DAOOption    `json:"option"`
+	VotingPowerToken     ctypes.CurrencyID  `json:"voting_power_token"`
+	Threshold            common.Big         `json:"threshold"`
+	ProposalFee          ctypes.Amount      `json:"proposal_fee"`
+	ProposerWhitelist    types.Whitelist    `json:"proposer_whitelist"`
+	ProposalReviewPeriod uint64             `json:"proposal_review_period"`
+	RegistrationPeriod   uint64             `json:"registration_period"`
+	PreSnapshotPeriod    uint64             `json:"pre_snapshot_period"`
+	VotingPeriod         uint64             `json:"voting_period"`
+	PostSnapshotPeriod   uint64             `json:"post_snapshot_period"`
+	ExecutionDelayPeriod uint64             `json:"execution_delay_period"`
+	Turnout              types.PercentRatio `json:"turnout"`
+	Quorum               types.PercentRatio `json:"quorum"`
+	Currency             ctypes.CurrencyID  `json:"currency"`
 }
 
 func (fact UpdateModelConfigFact) MarshalJSON() ([]byte, error) {
@@ -104,13 +105,10 @@ func (fact *UpdateModelConfigFact) DecodeJSON(b []byte, enc encoder.Encoder) err
 	return nil
 }
 
-type UpdateModelConfigMarshaler struct {
-	common.BaseOperationJSONMarshaler
-}
-
 func (op UpdateModelConfig) MarshalJSON() ([]byte, error) {
-	return util.MarshalJSON(UpdateModelConfigMarshaler{
-		BaseOperationJSONMarshaler: op.BaseOperation.JSONMarshaler(),
+	return util.MarshalJSON(OperationMarshaler{
+		BaseOperationJSONMarshaler:           op.BaseOperation.JSONMarshaler(),
+		BaseOperationExtensionsJSONMarshaler: op.BaseOperationExtensions.JSONMarshaler(),
 	})
 }
 
@@ -121,6 +119,13 @@ func (op *UpdateModelConfig) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	}
 
 	op.BaseOperation = ubo
+
+	var ueo extras.BaseOperationExtensions
+	if err := ueo.DecodeJSON(b, enc); err != nil {
+		return common.DecorateError(err, common.ErrDecodeJson, *op)
+	}
+
+	op.BaseOperationExtensions = &ueo
 
 	return nil
 }

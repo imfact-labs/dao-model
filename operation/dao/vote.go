@@ -2,7 +2,8 @@ package dao
 
 import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
+	"github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/hint"
@@ -21,7 +22,7 @@ type VoteFact struct {
 	contract   base.Address
 	proposalID string
 	voteOption uint8
-	currency   currencytypes.CurrencyID
+	currency   types.CurrencyID
 }
 
 func NewVoteFact(
@@ -30,7 +31,7 @@ func NewVoteFact(
 	contract base.Address,
 	proposalID string,
 	voteOption uint8,
-	currency currencytypes.CurrencyID,
+	currency types.CurrencyID,
 ) VoteFact {
 	bf := base.NewBaseFact(VoteFactHint, token)
 	fact := VoteFact{
@@ -82,7 +83,7 @@ func (fact VoteFact) IsValid(b []byte) error {
 		return common.ErrFactInvalid.Wrap(common.ErrValOOR.Wrap(errors.Errorf("empty proposal ID")))
 	}
 
-	if !currencytypes.ReValidSpcecialCh.Match([]byte(fact.proposalID)) {
+	if !types.ReValidSpcecialCh.Match([]byte(fact.proposalID)) {
 		return common.ErrFactInvalid.Wrap(
 			common.ErrValueInvalid.Wrap(
 				errors.Errorf("proposal ID %v must match regex `^[^\\s:/?#\\[\\]$@]*$`", fact.proposalID)))
@@ -121,7 +122,7 @@ func (fact VoteFact) VoteOption() uint8 {
 	return fact.voteOption
 }
 
-func (fact VoteFact) Currency() currencytypes.CurrencyID {
+func (fact VoteFact) Currency() types.CurrencyID {
 	return fact.currency
 }
 
@@ -134,18 +135,35 @@ func (fact VoteFact) Addresses() ([]base.Address, error) {
 	return as, nil
 }
 
+func (fact VoteFact) FeeBase() map[types.CurrencyID][]common.Big {
+	required := make(map[types.CurrencyID][]common.Big)
+	required[fact.Currency()] = []common.Big{common.ZeroBig}
+
+	return required
+}
+
+func (fact VoteFact) FeePayer() base.Address {
+	return fact.sender
+}
+
+func (fact VoteFact) FactUser() base.Address {
+	return fact.sender
+}
+
+func (fact VoteFact) Signer() base.Address {
+	return fact.sender
+}
+
+func (fact VoteFact) ActiveContract() []base.Address {
+	return []base.Address{fact.contract}
+}
+
 type Vote struct {
-	common.BaseOperation
+	extras.ExtendedOperation
 }
 
 func NewVote(fact VoteFact) Vote {
-	return Vote{BaseOperation: common.NewBaseOperation(VoteHint, fact)}
-}
-
-func (op *Vote) HashSign(priv base.Privatekey, networkID base.NetworkID) error {
-	err := op.Sign(priv, networkID)
-	if err != nil {
-		return err
+	return Vote{
+		ExtendedOperation: extras.NewExtendedOperation(VoteHint, fact),
 	}
-	return nil
 }

@@ -2,7 +2,8 @@ package dao
 
 import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
+	"github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/hint"
@@ -21,7 +22,7 @@ type RegisterFact struct {
 	contract   base.Address
 	proposalID string
 	approved   base.Address
-	currency   currencytypes.CurrencyID
+	currency   types.CurrencyID
 }
 
 func NewRegisterFact(
@@ -30,7 +31,7 @@ func NewRegisterFact(
 	contract base.Address,
 	proposalID string,
 	approved base.Address,
-	currency currencytypes.CurrencyID,
+	currency types.CurrencyID,
 ) RegisterFact {
 	bf := base.NewBaseFact(RegisterFactHint, token)
 	fact := RegisterFact{
@@ -83,7 +84,7 @@ func (fact RegisterFact) IsValid(b []byte) error {
 		return common.ErrFactInvalid.Wrap(common.ErrValOOR.Wrap(errors.Errorf("empty proposal ID")))
 	}
 
-	if !currencytypes.ReValidSpcecialCh.Match([]byte(fact.proposalID)) {
+	if !types.ReValidSpcecialCh.Match([]byte(fact.proposalID)) {
 		return common.ErrFactInvalid.Wrap(
 			common.ErrValueInvalid.Wrap(
 				errors.Errorf("proposal ID %v must match regex `^[^\\s:/?#\\[\\]$@]*$`", fact.proposalID)))
@@ -122,7 +123,7 @@ func (fact RegisterFact) Approved() base.Address {
 	return fact.approved
 }
 
-func (fact RegisterFact) Currency() currencytypes.CurrencyID {
+func (fact RegisterFact) Currency() types.CurrencyID {
 	return fact.currency
 }
 
@@ -136,18 +137,35 @@ func (fact RegisterFact) Addresses() ([]base.Address, error) {
 	return as, nil
 }
 
+func (fact RegisterFact) FeeBase() map[types.CurrencyID][]common.Big {
+	required := make(map[types.CurrencyID][]common.Big)
+	required[fact.Currency()] = []common.Big{common.ZeroBig}
+
+	return required
+}
+
+func (fact RegisterFact) FeePayer() base.Address {
+	return fact.sender
+}
+
+func (fact RegisterFact) FactUser() base.Address {
+	return fact.sender
+}
+
+func (fact RegisterFact) Signer() base.Address {
+	return fact.sender
+}
+
+func (fact RegisterFact) ActiveContract() []base.Address {
+	return []base.Address{fact.contract}
+}
+
 type Register struct {
-	common.BaseOperation
+	extras.ExtendedOperation
 }
 
 func NewRegister(fact RegisterFact) Register {
-	return Register{BaseOperation: common.NewBaseOperation(RegisterHint, fact)}
-}
-
-func (op *Register) HashSign(priv base.Privatekey, networkID base.NetworkID) error {
-	err := op.Sign(priv, networkID)
-	if err != nil {
-		return err
+	return Register{
+		ExtendedOperation: extras.NewExtendedOperation(RegisterHint, fact),
 	}
-	return nil
 }

@@ -7,9 +7,9 @@ import (
 	"github.com/ProtoconNet/mitum-dao/types"
 
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencystate "github.com/ProtoconNet/mitum-currency/v3/state"
+	cstate "github.com/ProtoconNet/mitum-currency/v3/state"
 	"github.com/ProtoconNet/mitum-currency/v3/state/currency"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum-dao/state"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
@@ -32,7 +32,7 @@ type ProposeProcessor struct {
 	*base.BaseOperationProcessor
 }
 
-func NewProposeProcessor() currencytypes.GetNewProcessor {
+func NewProposeProcessor() ctypes.GetNewProcessor {
 	return func(
 		height base.Height,
 		getStateFunc base.GetStateFunc,
@@ -76,28 +76,7 @@ func (opp *ProposeProcessor) PreProcess(
 				Errorf("%v", err)), nil
 	}
 
-	if _, _, aErr, cErr := currencystate.ExistsCAccount(fact.Sender(), "sender", true, false, getStateFunc); aErr != nil {
-		return ctx, base.NewBaseOperationProcessReasonError(
-			common.ErrMPreProcess.
-				Errorf("%v", aErr)), nil
-	} else if cErr != nil {
-		return ctx, base.NewBaseOperationProcessReasonError(
-			common.ErrMPreProcess.Wrap(common.ErrMCAccountNA).
-				Errorf("%v", cErr)), nil
-	}
-
-	_, _, aErr, cErr := currencystate.ExistsCAccount(fact.Contract(), "contract", true, true, getStateFunc)
-	if aErr != nil {
-		return ctx, base.NewBaseOperationProcessReasonError(
-			common.ErrMPreProcess.
-				Errorf("%v", aErr)), nil
-	} else if cErr != nil {
-		return ctx, base.NewBaseOperationProcessReasonError(
-			common.ErrMPreProcess.
-				Errorf("%v", cErr)), nil
-	}
-
-	if found, _ := currencystate.CheckNotExistsState(state.StateKeyProposal(fact.Contract(), fact.ProposalID()), getStateFunc); found {
+	if found, _ := cstate.CheckNotExistsState(state.StateKeyProposal(fact.Contract(), fact.ProposalID()), getStateFunc); found {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.Wrap(common.ErrMStateE).
 				Errorf("proposal %q already exists in contract account %v", fact.ProposalID(), fact.Contract())), nil
@@ -105,7 +84,7 @@ func (opp *ProposeProcessor) PreProcess(
 
 	required := map[string]common.Big{}
 
-	currencyPolicy, err := currencystate.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
+	currencyPolicy, err := cstate.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
 	if err != nil {
 		return ctx, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.Wrap(common.ErrMCurrencyNF).Errorf("currency id %q", fact.Currency())), nil
@@ -120,7 +99,7 @@ func (opp *ProposeProcessor) PreProcess(
 
 	required[fact.currency.String()] = fee
 
-	st, err := currencystate.ExistsState(state.StateKeyDesign(fact.Contract()), "design", getStateFunc)
+	st, err := cstate.ExistsState(state.StateKeyDesign(fact.Contract()), "design", getStateFunc)
 	if err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.Wrap(common.ErrMStateNF).Wrap(common.ErrMServiceNF).
@@ -142,7 +121,7 @@ func (opp *ProposeProcessor) PreProcess(
 
 	votingPowerToken := design.Policy().VotingPowerToken()
 	threshold := design.Policy().Threshold()
-	proposeFee := design.Policy().Fee()
+	proposeFee := design.Policy().ProposalFee()
 	whitelist := design.Policy().Whitelist()
 
 	if _, found := required[votingPowerToken.String()]; !found {
@@ -157,7 +136,7 @@ func (opp *ProposeProcessor) PreProcess(
 	required[proposeFee.Currency().String()] = required[proposeFee.Currency().String()].Add(proposeFee.Big())
 
 	for k, v := range required {
-		st, err = currencystate.ExistsState(currency.BalanceStateKey(fact.Sender(), currencytypes.CurrencyID(k)), "sender balance", getStateFunc)
+		st, err = cstate.ExistsState(currency.BalanceStateKey(fact.Sender(), ctypes.CurrencyID(k)), "sender balance", getStateFunc)
 		if err != nil {
 			return nil, base.NewBaseOperationProcessReasonError(
 				common.ErrMPreProcess.Wrap(common.ErrMStateNF).
@@ -182,13 +161,6 @@ func (opp *ProposeProcessor) PreProcess(
 				Errorf("sender not in whitelist, %s", fact.Sender())), nil
 	}
 
-	if err := currencystate.CheckFactSignsByState(fact.Sender(), op.Signs(), getStateFunc); err != nil {
-		return ctx, base.NewBaseOperationProcessReasonError(
-			common.ErrMPreProcess.
-				Wrap(common.ErrMSignInvalid).
-				Errorf("%v", err)), nil
-	}
-
 	return ctx, nil, nil
 }
 
@@ -196,16 +168,11 @@ func (opp *ProposeProcessor) Process(
 	_ context.Context, op base.Operation, getStateFunc base.GetStateFunc) (
 	[]base.StateMergeValue, base.OperationProcessReasonError, error,
 ) {
-	e := util.StringError("failed to process Propose")
-
-	fact, ok := op.Fact().(ProposeFact)
-	if !ok {
-		return nil, nil, e.Errorf("expected ProposeFact, not %T", op.Fact())
-	}
+	fact, _ := op.Fact().(ProposeFact)
 
 	var sts []base.StateMergeValue
 
-	st, err := currencystate.ExistsState(state.StateKeyDesign(fact.Contract()), "key of design", getStateFunc)
+	st, err := cstate.ExistsState(state.StateKeyDesign(fact.Contract()), "key of design", getStateFunc)
 	if err != nil {
 		return nil, base.NewBaseOperationProcessReasonError("dao not found, %s: %w", fact.Contract(), err), nil
 	}
@@ -215,98 +182,20 @@ func (opp *ProposeProcessor) Process(
 		return nil, base.NewBaseOperationProcessReasonError("dao value not found, %s: %w", fact.Contract(), err), nil
 	}
 
-	proposeFee := design.Policy().Fee()
+	proposeFee := design.Policy().ProposalFee()
 
 	sts = append(sts,
-		currencystate.NewStateMergeValue(
+		cstate.NewStateMergeValue(
 			state.StateKeyProposal(fact.Contract(), fact.ProposalID()),
-			state.NewProposalStateValue(types.Proposed, fact.Proposal(), design.Policy()),
+			state.NewProposalStateValue(types.Proposed, "proposed", fact.Proposal(), design.Policy()),
 		),
 	)
 
-	{ //calculate operation fee
-		currencyPolicy, err := currencystate.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
-		if err != nil {
-			return nil, base.NewBaseOperationProcessReasonError("currency not found, %q; %w", fact.Currency(), err), nil
-		}
-
-		fee, err := currencyPolicy.Feeer().Fee(common.ZeroBig)
-		if err != nil {
-			return nil, base.NewBaseOperationProcessReasonError(
-				"failed to check fee of currency, %q; %w",
-				fact.Currency(),
-				err,
-			), nil
-		}
-
-		senderBalSt, err := currencystate.ExistsState(
-			currency.BalanceStateKey(fact.Sender(), fact.Currency()),
-			"key of sender balance",
-			getStateFunc,
-		)
-		if err != nil {
-			return nil, base.NewBaseOperationProcessReasonError(
-				"sender balance not found, %q; %w",
-				fact.Sender(),
-				err,
-			), nil
-		}
-
-		switch senderBal, err := currency.StateBalanceValue(senderBalSt); {
-		case err != nil:
-			return nil, base.NewBaseOperationProcessReasonError(
-				"failed to get balance value, %q; %w",
-				currency.BalanceStateKey(fact.Sender(), fact.Currency()),
-				err,
-			), nil
-		case senderBal.Big().Compare(fee) < 0:
-			return nil, base.NewBaseOperationProcessReasonError(
-				"not enough balance of sender, %q",
-				fact.Sender(),
-			), nil
-		}
-
-		v, ok := senderBalSt.Value().(currency.BalanceStateValue)
-		if !ok {
-			return nil, base.NewBaseOperationProcessReasonError("expected BalanceStateValue, not %T", senderBalSt.Value()), nil
-		}
-
-		if currencyPolicy.Feeer().Receiver() != nil {
-			if err := currencystate.CheckExistsState(currency.AccountStateKey(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
-				return nil, nil, err
-			} else if feeRcvrSt, found, err := getStateFunc(currency.BalanceStateKey(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
-				return nil, nil, err
-			} else if !found {
-				return nil, nil, errors.Errorf("feeer receiver %s not found", currencyPolicy.Feeer().Receiver())
-			} else if feeRcvrSt.Key() != senderBalSt.Key() {
-				r, ok := feeRcvrSt.Value().(currency.BalanceStateValue)
-				if !ok {
-					return nil, nil, errors.Errorf("expected %T, not %T", currency.BalanceStateValue{}, feeRcvrSt.Value())
-				}
-				sts = append(sts, common.NewBaseStateMergeValue(
-					feeRcvrSt.Key(),
-					currency.NewAddBalanceStateValue(r.Amount.WithBig(fee)),
-					func(height base.Height, st base.State) base.StateValueMerger {
-						return currency.NewBalanceStateValueMerger(height, feeRcvrSt.Key(), fact.currency, st)
-					},
-				))
-
-				sts = append(sts, common.NewBaseStateMergeValue(
-					senderBalSt.Key(),
-					currency.NewDeductBalanceStateValue(v.Amount.WithBig(fee)),
-					func(height base.Height, st base.State) base.StateValueMerger {
-						return currency.NewBalanceStateValueMerger(height, senderBalSt.Key(), fact.currency, st)
-					},
-				))
-			}
-		}
-	}
-
-	st, err = currencystate.ExistsState(currency.BalanceStateKey(fact.Sender(), proposeFee.Currency()), "key of sender balance", getStateFunc)
+	st, err = cstate.ExistsState(currency.BalanceStateKey(fact.Sender(), proposeFee.Currency()), "key of sender balance", getStateFunc)
 	if err != nil {
 		return nil, base.NewBaseOperationProcessReasonError("sender balance for propose fee not found, %s, %q: %w", fact.Sender(), proposeFee.Currency(), err), nil
 	}
-	fBalance, err := currency.StateBalanceValue(st)
+	_, err = currency.StateBalanceValue(st)
 	if err != nil {
 		return nil, base.NewBaseOperationProcessReasonError("sender balance value for propose fee not found, %s, %q: %w", fact.Sender(), proposeFee.Currency(), err), nil
 	}
@@ -314,32 +203,22 @@ func (opp *ProposeProcessor) Process(
 	sts = append(sts,
 		common.NewBaseStateMergeValue(
 			st.Key(),
-			currency.NewDeductBalanceStateValue(fBalance.WithBig(proposeFee.Big())),
+			currency.NewDeductBalanceStateValue(proposeFee),
 			func(height base.Height, st base.State) base.StateValueMerger {
-				return currency.NewBalanceStateValueMerger(height, st.Key(), fact.currency, st)
+				return currency.NewBalanceStateValueMerger(height, st.Key(), proposeFee.Currency(), st)
 			},
 		),
 	)
 
-	var cBalance currencytypes.Amount
-	var cBalanceKey string
-	switch st, found, err := getStateFunc(currency.BalanceStateKey(fact.Contract(), proposeFee.Currency())); {
-	case err != nil:
-		return nil, base.NewBaseOperationProcessReasonError("contract account balance for propose fee not found, %s, %q: %w", fact.Contract(), proposeFee.Currency(), err), nil
-	case !found:
-		cBalance = currencytypes.NewAmount(common.ZeroBig, proposeFee.Currency())
-		cBalanceKey = st.Key()
-	default:
-		cBalance, err = currency.StateBalanceValue(st)
-		if err != nil {
-			return nil, base.NewBaseOperationProcessReasonError("contract balance value for propose fee not found, %s, %q: %w", fact.Contract(), proposeFee.Currency(), err), nil
-		}
-		cBalanceKey = st.Key()
-	}
-
+	cBalanceKey := currency.BalanceStateKey(fact.Contract(), proposeFee.Currency())
 	sts = append(sts,
-		currencystate.NewStateMergeValue(cBalanceKey, currency.NewBalanceStateValue(cBalance.WithBig(cBalance.Big().Add(proposeFee.Big())))),
-	)
+		common.NewBaseStateMergeValue(
+			cBalanceKey,
+			currency.NewAddBalanceStateValue(proposeFee),
+			func(height base.Height, st base.State) base.StateValueMerger {
+				return currency.NewBalanceStateValueMerger(height, cBalanceKey, proposeFee.Currency(), st)
+			},
+		))
 
 	return sts, nil, nil
 }

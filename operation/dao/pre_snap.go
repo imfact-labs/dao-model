@@ -2,7 +2,8 @@ package dao
 
 import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
+	"github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/hint"
@@ -20,7 +21,7 @@ type PreSnapFact struct {
 	sender     base.Address
 	contract   base.Address
 	proposalID string
-	currency   currencytypes.CurrencyID
+	currency   types.CurrencyID
 }
 
 func NewPreSnapFact(
@@ -28,7 +29,7 @@ func NewPreSnapFact(
 	sender base.Address,
 	contract base.Address,
 	proposalID string,
-	currency currencytypes.CurrencyID,
+	currency types.CurrencyID,
 ) PreSnapFact {
 	bf := base.NewBaseFact(PreSnapFactHint, token)
 	fact := PreSnapFact{
@@ -78,7 +79,7 @@ func (fact PreSnapFact) IsValid(b []byte) error {
 		return common.ErrFactInvalid.Wrap(common.ErrValOOR.Wrap(errors.Errorf("empty proposal ID")))
 	}
 
-	if !currencytypes.ReValidSpcecialCh.Match([]byte(fact.proposalID)) {
+	if !types.ReValidSpcecialCh.Match([]byte(fact.proposalID)) {
 		return common.ErrFactInvalid.Wrap(
 			common.ErrValueInvalid.Wrap(
 				errors.Errorf("proposal ID %v must match regex `^[^\\s:/?#\\[\\]$@]*$`", fact.proposalID)))
@@ -113,7 +114,7 @@ func (fact PreSnapFact) ProposalID() string {
 	return fact.proposalID
 }
 
-func (fact PreSnapFact) Currency() currencytypes.CurrencyID {
+func (fact PreSnapFact) Currency() types.CurrencyID {
 	return fact.currency
 }
 
@@ -126,18 +127,35 @@ func (fact PreSnapFact) Addresses() ([]base.Address, error) {
 	return as, nil
 }
 
+func (fact PreSnapFact) FeeBase() map[types.CurrencyID][]common.Big {
+	required := make(map[types.CurrencyID][]common.Big)
+	required[fact.Currency()] = []common.Big{common.ZeroBig}
+
+	return required
+}
+
+func (fact PreSnapFact) FeePayer() base.Address {
+	return fact.sender
+}
+
+func (fact PreSnapFact) FactUser() base.Address {
+	return fact.sender
+}
+
+func (fact PreSnapFact) Signer() base.Address {
+	return fact.sender
+}
+
+func (fact PreSnapFact) ActiveContract() []base.Address {
+	return []base.Address{fact.contract}
+}
+
 type PreSnap struct {
-	common.BaseOperation
+	extras.ExtendedOperation
 }
 
 func NewPreSnap(fact PreSnapFact) PreSnap {
-	return PreSnap{BaseOperation: common.NewBaseOperation(PreSnapHint, fact)}
-}
-
-func (op *PreSnap) HashSign(priv base.Privatekey, networkID base.NetworkID) error {
-	err := op.Sign(priv, networkID)
-	if err != nil {
-		return err
+	return PreSnap{
+		ExtendedOperation: extras.NewExtendedOperation(PreSnapHint, fact),
 	}
-	return nil
 }

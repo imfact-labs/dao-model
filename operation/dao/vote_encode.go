@@ -1,7 +1,7 @@
 package dao
 
 import (
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util/encoder"
 )
@@ -11,7 +11,7 @@ func (fact *VoteFact) unpack(enc encoder.Encoder,
 ) error {
 	fact.proposalID = pid
 	fact.voteOption = vt
-	fact.currency = currencytypes.CurrencyID(cid)
+	fact.currency = ctypes.CurrencyID(cid)
 
 	switch a, err := base.DecodeAddress(sa, enc); {
 	case err != nil:

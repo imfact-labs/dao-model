@@ -2,7 +2,8 @@ package dao
 
 import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum-dao/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
@@ -21,9 +22,9 @@ type RegisterModelFact struct {
 	sender               base.Address
 	contract             base.Address
 	option               types.DAOOption
-	votingPowerToken     currencytypes.CurrencyID
+	votingPowerToken     ctypes.CurrencyID
 	threshold            common.Big
-	proposalFee          currencytypes.Amount
+	proposalFee          ctypes.Amount
 	proposerWhitelist    types.Whitelist
 	proposalReviewPeriod uint64
 	registrationPeriod   uint64
@@ -33,7 +34,7 @@ type RegisterModelFact struct {
 	executionDelayPeriod uint64
 	turnout              types.PercentRatio
 	quorum               types.PercentRatio
-	currency             currencytypes.CurrencyID
+	currency             ctypes.CurrencyID
 }
 
 func NewRegisterModelFact(
@@ -41,9 +42,9 @@ func NewRegisterModelFact(
 	sender base.Address,
 	contract base.Address,
 	option types.DAOOption,
-	votingPowerToken currencytypes.CurrencyID,
+	votingPowerToken ctypes.CurrencyID,
 	threshold common.Big,
-	fee currencytypes.Amount,
+	fee ctypes.Amount,
 	whitelist types.Whitelist,
 	proposalReviewPeriod,
 	registrationPeriod,
@@ -52,7 +53,7 @@ func NewRegisterModelFact(
 	postSnapshotPeriod,
 	executionDelayPeriod uint64,
 	turnout, quorum types.PercentRatio,
-	currency currencytypes.CurrencyID,
+	currency ctypes.CurrencyID,
 ) RegisterModelFact {
 	bf := base.NewBaseFact(RegisterModelFactHint, token)
 	fact := RegisterModelFact{
@@ -198,11 +199,11 @@ func (fact RegisterModelFact) Option() types.DAOOption {
 	return fact.option
 }
 
-func (fact RegisterModelFact) VotingPowerToken() currencytypes.CurrencyID {
+func (fact RegisterModelFact) VotingPowerToken() ctypes.CurrencyID {
 	return fact.votingPowerToken
 }
 
-func (fact RegisterModelFact) ProposalFee() currencytypes.Amount {
+func (fact RegisterModelFact) ProposalFee() ctypes.Amount {
 	return fact.proposalFee
 }
 
@@ -246,7 +247,7 @@ func (fact RegisterModelFact) Quorum() types.PercentRatio {
 	return fact.quorum
 }
 
-func (fact RegisterModelFact) Currency() currencytypes.CurrencyID {
+func (fact RegisterModelFact) Currency() ctypes.CurrencyID {
 	return fact.currency
 }
 
@@ -263,18 +264,35 @@ func (fact RegisterModelFact) Addresses() ([]base.Address, error) {
 	return as, nil
 }
 
+func (fact RegisterModelFact) FeeBase() map[ctypes.CurrencyID][]common.Big {
+	required := make(map[ctypes.CurrencyID][]common.Big)
+	required[fact.Currency()] = []common.Big{common.ZeroBig}
+
+	return required
+}
+
+func (fact RegisterModelFact) FeePayer() base.Address {
+	return fact.sender
+}
+
+func (fact RegisterModelFact) FactUser() base.Address {
+	return fact.sender
+}
+
+func (fact RegisterModelFact) Signer() base.Address {
+	return fact.sender
+}
+
+func (fact RegisterModelFact) InActiveContractOwnerHandlerOnly() [][2]base.Address {
+	return [][2]base.Address{{fact.contract, fact.sender}}
+}
+
 type RegisterModel struct {
-	common.BaseOperation
+	extras.ExtendedOperation
 }
 
 func NewRegisterModel(fact RegisterModelFact) RegisterModel {
-	return RegisterModel{BaseOperation: common.NewBaseOperation(RegisterModelHint, fact)}
-}
-
-func (op *RegisterModel) HashSign(priv base.Privatekey, networkID base.NetworkID) error {
-	err := op.Sign(priv, networkID)
-	if err != nil {
-		return err
+	return RegisterModel{
+		ExtendedOperation: extras.NewExtendedOperation(RegisterModelHint, fact),
 	}
-	return nil
 }

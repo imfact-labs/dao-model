@@ -2,7 +2,8 @@ package dao
 
 import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/encoder"
@@ -10,11 +11,11 @@ import (
 
 type VoteFactJSONMarshaler struct {
 	base.BaseFactJSONMarshaler
-	Owner      base.Address             `json:"sender"`
-	Contract   base.Address             `json:"contract"`
-	ProposalID string                   `json:"proposal_id"`
-	VoteOption uint8                    `json:"vote_option"`
-	Currency   currencytypes.CurrencyID `json:"currency"`
+	Owner      base.Address      `json:"sender"`
+	Contract   base.Address      `json:"contract"`
+	ProposalID string            `json:"proposal_id"`
+	VoteOption uint8             `json:"vote_option"`
+	Currency   ctypes.CurrencyID `json:"currency"`
 }
 
 func (fact VoteFact) MarshalJSON() ([]byte, error) {
@@ -62,8 +63,9 @@ type VoteMarshaler struct {
 }
 
 func (op Vote) MarshalJSON() ([]byte, error) {
-	return util.MarshalJSON(VoteMarshaler{
-		BaseOperationJSONMarshaler: op.BaseOperation.JSONMarshaler(),
+	return util.MarshalJSON(OperationMarshaler{
+		BaseOperationJSONMarshaler:           op.BaseOperation.JSONMarshaler(),
+		BaseOperationExtensionsJSONMarshaler: op.BaseOperationExtensions.JSONMarshaler(),
 	})
 }
 
@@ -74,6 +76,13 @@ func (op *Vote) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	}
 
 	op.BaseOperation = ubo
+
+	var ueo extras.BaseOperationExtensions
+	if err := ueo.DecodeJSON(b, enc); err != nil {
+		return common.DecorateError(err, common.ErrDecodeJson, *op)
+	}
+
+	op.BaseOperationExtensions = &ueo
 
 	return nil
 }

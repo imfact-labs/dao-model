@@ -2,7 +2,8 @@ package dao
 
 import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum-dao/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
@@ -21,9 +22,9 @@ type UpdateModelConfigFact struct {
 	sender               base.Address
 	contract             base.Address
 	option               types.DAOOption
-	votingPowerToken     currencytypes.CurrencyID
+	votingPowerToken     ctypes.CurrencyID
 	threshold            common.Big
-	proposalFee          currencytypes.Amount
+	proposalFee          ctypes.Amount
 	proposerWhitelist    types.Whitelist
 	proposalReviewPeriod uint64
 	registrationPeriod   uint64
@@ -33,7 +34,7 @@ type UpdateModelConfigFact struct {
 	executionDelayPeriod uint64
 	turnout              types.PercentRatio
 	quorum               types.PercentRatio
-	currency             currencytypes.CurrencyID
+	currency             ctypes.CurrencyID
 }
 
 func NewUpdateModelConfigFact(
@@ -41,9 +42,9 @@ func NewUpdateModelConfigFact(
 	sender base.Address,
 	contract base.Address,
 	option types.DAOOption,
-	votingPowerToken currencytypes.CurrencyID,
+	votingPowerToken ctypes.CurrencyID,
 	threshold common.Big,
-	fee currencytypes.Amount,
+	fee ctypes.Amount,
 	whitelist types.Whitelist,
 	proposalReviewPeriod,
 	registrationPeriod,
@@ -52,7 +53,7 @@ func NewUpdateModelConfigFact(
 	postSnapshotPeriod,
 	executionDelayPeriod uint64,
 	turnout, quorum types.PercentRatio,
-	currency currencytypes.CurrencyID,
+	currency ctypes.CurrencyID,
 ) UpdateModelConfigFact {
 	bf := base.NewBaseFact(UpdateModelConfigFactHint, token)
 	fact := UpdateModelConfigFact{
@@ -199,11 +200,11 @@ func (fact UpdateModelConfigFact) Option() types.DAOOption {
 	return fact.option
 }
 
-func (fact UpdateModelConfigFact) VotingPowerToken() currencytypes.CurrencyID {
+func (fact UpdateModelConfigFact) VotingPowerToken() ctypes.CurrencyID {
 	return fact.votingPowerToken
 }
 
-func (fact UpdateModelConfigFact) ProposalFee() currencytypes.Amount {
+func (fact UpdateModelConfigFact) ProposalFee() ctypes.Amount {
 	return fact.proposalFee
 }
 
@@ -247,7 +248,7 @@ func (fact UpdateModelConfigFact) Quorum() types.PercentRatio {
 	return fact.quorum
 }
 
-func (fact UpdateModelConfigFact) Currency() currencytypes.CurrencyID {
+func (fact UpdateModelConfigFact) Currency() ctypes.CurrencyID {
 	return fact.currency
 }
 
@@ -264,18 +265,35 @@ func (fact UpdateModelConfigFact) Addresses() ([]base.Address, error) {
 	return as, nil
 }
 
+func (fact UpdateModelConfigFact) FeeBase() map[ctypes.CurrencyID][]common.Big {
+	required := make(map[ctypes.CurrencyID][]common.Big)
+	required[fact.Currency()] = []common.Big{common.ZeroBig}
+
+	return required
+}
+
+func (fact UpdateModelConfigFact) FeePayer() base.Address {
+	return fact.sender
+}
+
+func (fact UpdateModelConfigFact) FactUser() base.Address {
+	return fact.sender
+}
+
+func (fact UpdateModelConfigFact) Signer() base.Address {
+	return fact.sender
+}
+
+func (fact UpdateModelConfigFact) ActiveContractOwnerHandlerOnly() [][2]base.Address {
+	return [][2]base.Address{{fact.contract, fact.sender}}
+}
+
 type UpdateModelConfig struct {
-	common.BaseOperation
+	extras.ExtendedOperation
 }
 
 func NewUpdateModelConfig(fact UpdateModelConfigFact) UpdateModelConfig {
-	return UpdateModelConfig{BaseOperation: common.NewBaseOperation(UpdateModelConfigHint, fact)}
-}
-
-func (op *UpdateModelConfig) HashSign(priv base.Privatekey, networkID base.NetworkID) error {
-	err := op.Sign(priv, networkID)
-	if err != nil {
-		return err
+	return UpdateModelConfig{
+		ExtendedOperation: extras.NewExtendedOperation(UpdateModelConfigHint, fact),
 	}
-	return nil
 }

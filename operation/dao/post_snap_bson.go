@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
 	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/ProtoconNet/mitum-currency/v3/common"
@@ -80,6 +81,13 @@ func (op *PostSnap) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 	}
 
 	op.BaseOperation = ubo
+
+	var ueo extras.BaseOperationExtensions
+	if err := ueo.DecodeBSON(b, enc); err != nil {
+		return common.DecorateError(err, common.ErrDecodeBson, *op)
+	}
+
+	op.BaseOperationExtensions = &ueo
 
 	return nil
 }

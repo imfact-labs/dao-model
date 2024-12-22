@@ -176,7 +176,7 @@ func (po Policy) Threshold() common.Big {
 	return po.threshold
 }
 
-func (po Policy) Fee() currencytypes.Amount {
+func (po Policy) ProposalFee() currencytypes.Amount {
 	return po.proposalFee
 }
 
