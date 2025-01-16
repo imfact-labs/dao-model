@@ -49,9 +49,10 @@ func (doc DAODesignDoc) MarshalBSON() ([]byte, error) {
 
 type DAOProposalDoc struct {
 	mongodbstorage.BaseDoc
-	st base.State
-	pr types.Proposal
-	ps types.ProposalStatus
+	st  base.State
+	pr  types.Proposal
+	ps  types.ProposalStatus
+	prs string
 }
 
 func NewDAOProposalDoc(st base.State, enc encoder.Encoder) (DAOProposalDoc, error) {
@@ -69,6 +70,7 @@ func NewDAOProposalDoc(st base.State, enc encoder.Encoder) (DAOProposalDoc, erro
 		st:      st,
 		pr:      pv.Proposal(),
 		ps:      pv.Status(),
+		prs:     pv.Reason(),
 	}, nil
 }
 
@@ -84,6 +86,7 @@ func (doc DAOProposalDoc) MarshalBSON() ([]byte, error) {
 	m["height"] = doc.st.Height()
 	m["proposal"] = doc.pr
 	m["proposal_status"] = doc.ps
+	m["proposal_status_reason"] = doc.prs
 
 	return bsonenc.Marshal(m)
 }

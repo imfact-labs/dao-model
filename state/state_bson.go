@@ -57,6 +57,7 @@ func (p ProposalStateValue) MarshalBSON() ([]byte, error) {
 		bson.M{
 			"_hint":    p.Hint().String(),
 			"status":   p.status,
+			"reason":   p.reason,
 			"proposal": p.proposal,
 			"policy":   p.policy,
 		},
@@ -66,6 +67,7 @@ func (p ProposalStateValue) MarshalBSON() ([]byte, error) {
 type ProposalStateValueBSONUnmarshaler struct {
 	Hint     string   `bson:"_hint"`
 	Status   uint8    `bson:"status"`
+	Reason   string   `bson:"reason"`
 	Proposal bson.Raw `bson:"proposal"`
 	Policy   bson.Raw `bson:"policy"`
 }
@@ -106,6 +108,7 @@ func (p *ProposalStateValue) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 	}
 
 	p.status = types.ProposalStatus(types.Option(u.Status))
+	p.reason = u.Reason
 
 	return nil
 }

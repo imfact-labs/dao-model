@@ -85,14 +85,16 @@ var (
 type ProposalStateValue struct {
 	hint.BaseHinter
 	status   types.ProposalStatus
+	reason   string
 	proposal types.Proposal
 	policy   types.Policy
 }
 
-func NewProposalStateValue(status types.ProposalStatus, proposal types.Proposal, policy types.Policy) ProposalStateValue {
+func NewProposalStateValue(status types.ProposalStatus, reason string, proposal types.Proposal, policy types.Policy) ProposalStateValue {
 	return ProposalStateValue{
 		BaseHinter: hint.NewBaseHinter(ProposalStateValueHint),
 		status:     status,
+		reason:     reason,
 		proposal:   proposal,
 		policy:     policy,
 	}
@@ -104,6 +106,10 @@ func (p ProposalStateValue) Hint() hint.Hint {
 
 func (p ProposalStateValue) Status() types.ProposalStatus {
 	return p.status
+}
+
+func (p ProposalStateValue) Reason() string {
+	return p.reason
 }
 
 func (p ProposalStateValue) Proposal() types.Proposal {
@@ -133,6 +139,12 @@ func (p ProposalStateValue) IsValid([]byte) error {
 }
 
 func (p ProposalStateValue) HashBytes() []byte {
+	util.ConcatBytesSlice(
+		p.status.Bytes(),
+		[]byte(p.reason),
+		p.proposal.Bytes(),
+		p.policy.Bytes(),
+	)
 	return p.proposal.Bytes()
 }
 
