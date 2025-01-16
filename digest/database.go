@@ -12,17 +12,11 @@ import (
 )
 
 var (
-	defaultColNameAccount           = "digest_ac"
-	defaultColNameContractAccount   = "digest_ca"
-	defaultColNameBalance           = "digest_bl"
-	defaultColNameCurrency          = "digest_cr"
-	defaultColNameOperation         = "digest_op"
-	defaultColNameBlock             = "digest_bm"
-	defaultColNameDAO               = "digest_dao_de"
-	defaultColNameDAOProposal       = "digest_dao_pr"
-	defaultColNameDAODelegators     = "digest_dao_dac"
-	defaultColNameDAOVoters         = "digest_dao_vac"
-	defaultColNameDAOVotingPowerBox = "digest_dao_vpb"
+	DefaultColNameDAO               = "digest_dao_de"
+	DefaultColNameDAOProposal       = "digest_dao_pr"
+	DefaultColNameDAODelegators     = "digest_dao_dac"
+	DefaultColNameDAOVoters         = "digest_dao_vac"
+	DefaultColNameDAOVotingPowerBox = "digest_dao_vpb"
 )
 
 func DAOService(st *currencydigest.Database, contract string) (*types.Design, error) {
@@ -34,7 +28,7 @@ func DAOService(st *currencydigest.Database, contract string) (*types.Design, er
 	if st.MongoClient() == nil {
 		return nil, errors.Errorf("empty Database client")
 	} else if err := st.MongoClient().GetByFilter(
-		defaultColNameDAO,
+		DefaultColNameDAO,
 		filter.D(),
 		func(res *mongo.SingleResult) error {
 			sta, err = currencydigest.LoadState(res.Decode, st.Encoders())
@@ -71,7 +65,7 @@ func DAODelegatorInfo(st *currencydigest.Database, contract, proposalID, delegat
 	if st.MongoClient() == nil {
 		return nil, errors.Errorf("empty Database client")
 	} else if err = st.MongoClient().GetByFilter(
-		defaultColNameDAODelegators,
+		DefaultColNameDAODelegators,
 		filter.D(),
 		func(res *mongo.SingleResult) error {
 			sta, err = currencydigest.LoadState(res.Decode, st.Encoders())
@@ -113,7 +107,7 @@ func DAOVoters(st *currencydigest.Database, contract, proposalID string) ([]type
 	if st.MongoClient() == nil {
 		return nil, errors.Errorf("empty Database client")
 	} else if err = st.MongoClient().GetByFilter(
-		defaultColNameDAOVoters,
+		DefaultColNameDAOVoters,
 		filter.D(),
 		func(res *mongo.SingleResult) error {
 			sta, err = currencydigest.LoadState(res.Decode, st.Encoders())
@@ -145,7 +139,7 @@ func DAOProposal(st *currencydigest.Database, contract, proposalID string) (*sta
 	if st.MongoClient() == nil {
 		return nil, errors.Errorf("empty Database client")
 	} else if err = st.MongoClient().GetByFilter(
-		defaultColNameDAOProposal,
+		DefaultColNameDAOProposal,
 		filter.D(),
 		func(res *mongo.SingleResult) error {
 			sta, err = currencydigest.LoadState(res.Decode, st.Encoders())
@@ -177,7 +171,7 @@ func DAOVotingPowerBox(st *currencydigest.Database, contract, proposalID string)
 	if st.MongoClient() == nil {
 		return nil, errors.Errorf("empty Database client")
 	} else if err = st.MongoClient().GetByFilter(
-		defaultColNameDAOVotingPowerBox,
+		DefaultColNameDAOVotingPowerBox,
 		filter.D(),
 		func(res *mongo.SingleResult) error {
 			sta, err = currencydigest.LoadState(res.Decode, st.Encoders())
