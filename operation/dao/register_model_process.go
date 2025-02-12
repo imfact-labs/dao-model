@@ -95,7 +95,7 @@ func (opp *RegisterModelProcessor) PreProcess(
 	if found, _ := cstate.CheckNotExistsState(state.StateKeyDesign(fact.Contract()), getStateFunc); found {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
-				Wrap(common.ErrMServiceE).Errorf("dao design for contract account %v",
+				Wrap(common.ErrMServiceE).Errorf("dao service state for contract account %v",
 				fact.Contract(),
 			)), nil
 	}
@@ -138,7 +138,7 @@ func (opp *RegisterModelProcessor) Process(
 
 	design := types.NewDesign(fact.option, policy)
 	if err := design.IsValid(nil); err != nil {
-		return nil, base.NewBaseOperationProcessReasonError("invalid dao design, %s: %w", fact.Contract(), err), nil
+		return nil, base.NewBaseOperationProcessReasonError("invalid design, %s: %w", fact.Contract(), err), nil
 	}
 
 	var sts []base.StateMergeValue

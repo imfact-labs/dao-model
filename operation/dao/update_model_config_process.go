@@ -92,13 +92,13 @@ func (opp *UpdateModelConfigProcessor) PreProcess(
 	if st, err := cstate.ExistsState(state.StateKeyDesign(fact.Contract()), "design", getStateFunc); err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
-				Wrap(common.ErrMServiceNF).Errorf("dao design for contract account %v",
+				Wrap(common.ErrMServiceNF).Errorf("dao service state for contract account %v",
 				fact.Contract(),
 			)), nil
 	} else if _, err := state.StateDesignValue(st); err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
-				Wrap(common.ErrMServiceNF).Errorf("dao design for contract account %v",
+				Wrap(common.ErrMServiceNF).Errorf("dao service state for contract account %v",
 				fact.Contract(),
 			)), nil
 	}
@@ -140,7 +140,7 @@ func (opp *UpdateModelConfigProcessor) Process(
 
 	design := types.NewDesign(fact.option, policy)
 	if err := design.IsValid(nil); err != nil {
-		return nil, base.NewBaseOperationProcessReasonError("invalid dao design, %s: %w", fact.Contract(), err), nil
+		return nil, base.NewBaseOperationProcessReasonError("invalid design, %s: %w", fact.Contract(), err), nil
 	}
 
 	var sts []base.StateMergeValue

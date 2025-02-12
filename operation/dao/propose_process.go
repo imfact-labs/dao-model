@@ -103,14 +103,14 @@ func (opp *ProposeProcessor) PreProcess(
 	if err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.Wrap(common.ErrMStateNF).Wrap(common.ErrMServiceNF).
-				Errorf("dao design for contract account %v", fact.Contract())), nil
+				Errorf("dao service state for contract account %v", fact.Contract())), nil
 	}
 
 	design, err := state.StateDesignValue(st)
 	if err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.Wrap(common.ErrMStateValInvalid).Wrap(common.ErrMServiceNF).
-				Errorf("dao design for contract account %v", fact.Contract())), nil
+				Errorf("dao service state for contract account %v", fact.Contract())), nil
 	}
 
 	if design.Option() != fact.Proposal().Option() {

@@ -93,13 +93,13 @@ func (opp *RegisterProcessor) PreProcess(
 	if st, err := cstate.ExistsState(state.StateKeyDesign(fact.Contract()), "design", getStateFunc); err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
-				Wrap(common.ErrMServiceNF).Errorf("dao design for contract account %v",
+				Wrap(common.ErrMServiceNF).Errorf("dao service state for contract account %v",
 				fact.Contract(),
 			)), nil
 	} else if _, err := state.StateDesignValue(st); err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
-				Wrap(common.ErrMServiceNF).Errorf("dao design for contract account %v",
+				Wrap(common.ErrMServiceNF).Errorf("dao service state for contract account %v",
 				fact.Contract(),
 			)), nil
 	}

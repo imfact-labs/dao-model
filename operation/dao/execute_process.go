@@ -87,13 +87,13 @@ func (opp *ExecuteProcessor) PreProcess(
 		fact.Contract()), "design", getStateFunc); err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
-				Wrap(common.ErrMServiceNF).Errorf("dao design state for contract account %v",
+				Wrap(common.ErrMServiceNF).Errorf("dao service state for contract account %v",
 				fact.Contract(),
 			)), nil
 	} else if _, err := state.StateDesignValue(st); err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
-				Wrap(common.ErrMServiceNF).Errorf("dao design state value for contract account %v",
+				Wrap(common.ErrMServiceNF).Errorf("dao service state value for contract account %v",
 				fact.Contract(),
 			)), nil
 	}
@@ -273,13 +273,14 @@ func (opp *ExecuteProcessor) Process(
 			st, err := cstate.ExistsState(state.StateKeyDesign(fact.Contract()), "key of design", getStateFunc)
 			if err != nil {
 				return nil, base.NewBaseOperationProcessReasonError(
-					"dao design not found, %s: %w", fact.Contract(), err), nil
+					common.ErrMServiceNF.Errorf(
+						"dao service state for contract account, %v: %v", fact.Contract(), err)), nil
 			}
 
 			design, err := state.StateDesignValue(st)
 			if err != nil {
-				return nil, base.NewBaseOperationProcessReasonError(
-					"dao design value not found, %s: %w", fact.Contract(), err), nil
+				return nil, base.NewBaseOperationProcessReasonError(common.ErrMStateInvalid.Errorf(
+					"dao service state value for contract account, %v: %v", fact.Contract(), err)), nil
 			}
 
 			nd := types.NewDesign(design.Option(), cd.Policy())
