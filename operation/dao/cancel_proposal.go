@@ -137,6 +137,10 @@ func (fact CancelProposalFact) FeePayer() base.Address {
 	return fact.sender
 }
 
+func (fact CancelProposalFact) FeeItemCount() (uint, bool) {
+	return extras.ZeroItem, extras.HasNoItem
+}
+
 func (fact CancelProposalFact) FactUser() base.Address {
 	return fact.sender
 }

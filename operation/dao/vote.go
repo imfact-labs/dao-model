@@ -146,6 +146,10 @@ func (fact VoteFact) FeePayer() base.Address {
 	return fact.sender
 }
 
+func (fact VoteFact) FeeItemCount() (uint, bool) {
+	return extras.ZeroItem, extras.HasNoItem
+}
+
 func (fact VoteFact) FactUser() base.Address {
 	return fact.sender
 }

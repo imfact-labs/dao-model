@@ -138,6 +138,10 @@ func (fact PostSnapFact) FeePayer() base.Address {
 	return fact.sender
 }
 
+func (fact PostSnapFact) FeeItemCount() (uint, bool) {
+	return extras.ZeroItem, extras.HasNoItem
+}
+
 func (fact PostSnapFact) FactUser() base.Address {
 	return fact.sender
 }
