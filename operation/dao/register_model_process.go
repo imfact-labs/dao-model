@@ -2,8 +2,9 @@ package dao
 
 import (
 	"context"
-	"github.com/ProtoconNet/mitum-currency/v3/common"
 	"sync"
+
+	"github.com/ProtoconNet/mitum-currency/v3/common"
 
 	"github.com/ProtoconNet/mitum-dao/types"
 
@@ -167,11 +168,13 @@ func (opp *RegisterModelProcessor) Process(
 	if err != nil {
 		return nil, base.NewBaseOperationProcessReasonError("failed to get state value of contract account, %q; %w", fact.Contract(), err), nil
 	}
-	nca := ca.SetActive(true)
+	ca.SetActive(true)
+	h := op.Hint()
+	ca.SetRegisterOperation(&h)
 
 	sts = append(sts, cstate.NewStateMergeValue(
 		cestate.StateKeyContractAccount(fact.Contract()),
-		cestate.NewContractAccountStateValue(nca),
+		cestate.NewContractAccountStateValue(ca),
 	))
 
 	return sts, nil, nil
