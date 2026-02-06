@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	"github.com/ProtoconNet/mitum2/util"
 )
 

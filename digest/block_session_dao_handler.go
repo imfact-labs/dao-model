@@ -1,13 +1,13 @@
 package digest
 
 import (
-	currencydigest "github.com/ProtoconNet/mitum-currency/v3/digest"
+	cdigest "github.com/ProtoconNet/mitum-currency/v3/digest"
 	"github.com/ProtoconNet/mitum-dao/state"
 	mitumbase "github.com/ProtoconNet/mitum2/base"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func PrepareDAO(bs *currencydigest.BlockSession, st mitumbase.State) (string, []mongo.WriteModel, error) {
+func PrepareDAO(bs *cdigest.BlockSession, st mitumbase.State) (string, []mongo.WriteModel, error) {
 
 	switch {
 	case state.IsStateDesignKey(st.Key()):
@@ -47,7 +47,7 @@ func PrepareDAO(bs *currencydigest.BlockSession, st mitumbase.State) (string, []
 	return "", nil, nil
 }
 
-func handleDAODesignState(bs *currencydigest.BlockSession, st mitumbase.State) ([]mongo.WriteModel, error) {
+func handleDAODesignState(bs *cdigest.BlockSession, st mitumbase.State) ([]mongo.WriteModel, error) {
 	if designDoc, err := NewDAODesignDoc(st, bs.Database().Encoder()); err != nil {
 		return nil, err
 	} else {
@@ -57,7 +57,7 @@ func handleDAODesignState(bs *currencydigest.BlockSession, st mitumbase.State) (
 	}
 }
 
-func handleDAOProposalState(bs *currencydigest.BlockSession, st mitumbase.State) ([]mongo.WriteModel, error) {
+func handleDAOProposalState(bs *cdigest.BlockSession, st mitumbase.State) ([]mongo.WriteModel, error) {
 	if nftCollectionDoc, err := NewDAOProposalDoc(st, bs.Database().Encoder()); err != nil {
 		return nil, err
 	} else {
@@ -67,7 +67,7 @@ func handleDAOProposalState(bs *currencydigest.BlockSession, st mitumbase.State)
 	}
 }
 
-func handleDAODelegatorsState(bs *currencydigest.BlockSession, st mitumbase.State) ([]mongo.WriteModel, error) {
+func handleDAODelegatorsState(bs *cdigest.BlockSession, st mitumbase.State) ([]mongo.WriteModel, error) {
 	if delegatorsDoc, err := NewDAODelegatorsDoc(st, bs.Database().Encoder()); err != nil {
 		return nil, err
 	} else {
@@ -77,7 +77,7 @@ func handleDAODelegatorsState(bs *currencydigest.BlockSession, st mitumbase.Stat
 	}
 }
 
-func handleDAOVotersState(bs *currencydigest.BlockSession, st mitumbase.State) ([]mongo.WriteModel, error) {
+func handleDAOVotersState(bs *cdigest.BlockSession, st mitumbase.State) ([]mongo.WriteModel, error) {
 	if votersDoc, err := NewDAOVotersDoc(st, bs.Database().Encoder()); err != nil {
 		return nil, err
 	} else {
@@ -87,7 +87,7 @@ func handleDAOVotersState(bs *currencydigest.BlockSession, st mitumbase.State) (
 	}
 }
 
-func handleDAOVotingPowerBoxState(bs *currencydigest.BlockSession, st mitumbase.State) ([]mongo.WriteModel, error) {
+func handleDAOVotingPowerBoxState(bs *cdigest.BlockSession, st mitumbase.State) ([]mongo.WriteModel, error) {
 	if nftLastIndexDoc, err := NewDAOVotingPowerBoxDoc(st, bs.Database().Encoder()); err != nil {
 		return nil, err
 	} else {

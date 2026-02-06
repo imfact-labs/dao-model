@@ -374,7 +374,7 @@ func StateKeyVoters(ca base.Address, pid string) string {
 //	return strings.HasPrefix(key, DAOPrefix) && strings.HasSuffix(key, ProposalStatusSuffix)
 //}
 //
-//func StateKeyProposalStatus(ca base.Address, daoID currencytypes.ContractID, pid string) string {
+//func StateKeyProposalStatus(ca base.Address, daoID ctypes.ContractID, pid string) string {
 //	return fmt.Sprintf("%s-%s%s", StateKeyDAOPrefix(ca, daoID), pid, ProposalStatusSuffix)
 //}
 

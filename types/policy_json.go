@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/encoder"
@@ -44,18 +44,18 @@ func (wl *Whitelist) DecodeJSON(b []byte, enc encoder.Encoder) error {
 
 type PolicyJSONMarshaler struct {
 	hint.BaseHinter
-	Token                currencytypes.CurrencyID `json:"voting_power_token"`
-	Threshold            common.Big               `json:"threshold"`
-	Fee                  currencytypes.Amount     `json:"proposal_fee"`
-	Whitelist            Whitelist                `json:"proposer_whitelist"`
-	ProposalReviewPeriod uint64                   `json:"proposal_review_period"`
-	RegistrationPeriod   uint64                   `json:"registration_period"`
-	PreSnapshotPeriod    uint64                   `json:"pre_snapshot_period"`
-	VotingPeriod         uint64                   `json:"voting_period"`
-	PostSnapshotPeriod   uint64                   `json:"post_snapshot_period"`
-	ExecutionDelayPeriod uint64                   `json:"execution_delay_period"`
-	Turnout              PercentRatio             `json:"turnout"`
-	Quorum               PercentRatio             `json:"quorum"`
+	Token                ctypes.CurrencyID `json:"voting_power_token"`
+	Threshold            common.Big        `json:"threshold"`
+	Fee                  ctypes.Amount     `json:"proposal_fee"`
+	Whitelist            Whitelist         `json:"proposer_whitelist"`
+	ProposalReviewPeriod uint64            `json:"proposal_review_period"`
+	RegistrationPeriod   uint64            `json:"registration_period"`
+	PreSnapshotPeriod    uint64            `json:"pre_snapshot_period"`
+	VotingPeriod         uint64            `json:"voting_period"`
+	PostSnapshotPeriod   uint64            `json:"post_snapshot_period"`
+	ExecutionDelayPeriod uint64            `json:"execution_delay_period"`
+	Turnout              PercentRatio      `json:"turnout"`
+	Quorum               PercentRatio      `json:"quorum"`
 }
 
 func (po Policy) MarshalJSON() ([]byte, error) {

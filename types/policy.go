@@ -2,7 +2,7 @@ package types
 
 import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/hint"
@@ -94,9 +94,9 @@ var PolicyHint = hint.MustNewHint("mitum-dao-policy-v0.0.1")
 
 type Policy struct {
 	hint.BaseHinter
-	votingPowerToken     currencytypes.CurrencyID
+	votingPowerToken     ctypes.CurrencyID
 	threshold            common.Big
-	proposalFee          currencytypes.Amount
+	proposalFee          ctypes.Amount
 	proposerWhitelist    Whitelist
 	proposalReviewPeriod uint64
 	registrationPeriod   uint64
@@ -109,9 +109,9 @@ type Policy struct {
 }
 
 func NewPolicy(
-	token currencytypes.CurrencyID,
+	token ctypes.CurrencyID,
 	threshold common.Big,
-	fee currencytypes.Amount,
+	fee ctypes.Amount,
 	whitelist Whitelist,
 	proposalReviewPeriod, registrationPeriod, preSnapshotPeriod, votingPeriod, postSnapshotPeriod, executionDelayPeriod uint64,
 	turnout, quorum PercentRatio,
@@ -168,7 +168,7 @@ func (po Policy) IsValid([]byte) error {
 	return nil
 }
 
-func (po Policy) VotingPowerToken() currencytypes.CurrencyID {
+func (po Policy) VotingPowerToken() ctypes.CurrencyID {
 	return po.votingPowerToken
 }
 
@@ -176,7 +176,7 @@ func (po Policy) Threshold() common.Big {
 	return po.threshold
 }
 
-func (po Policy) ProposalFee() currencytypes.Amount {
+func (po Policy) ProposalFee() ctypes.Amount {
 	return po.proposalFee
 }
 

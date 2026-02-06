@@ -1,7 +1,7 @@
 package cmds
 
 import (
-	currencycmds "github.com/ProtoconNet/mitum-currency/v3/cmds"
+	ccmds "github.com/ProtoconNet/mitum-currency/v3/cmds"
 	"github.com/ProtoconNet/mitum-dao/operation/dao"
 	"github.com/ProtoconNet/mitum-dao/state"
 	"github.com/ProtoconNet/mitum-dao/types"
@@ -56,10 +56,10 @@ var AddedSupportedHinters = []encoder.DecodeDetail{
 }
 
 func init() {
-	Hinters = append(Hinters, currencycmds.Hinters...)
+	Hinters = append(Hinters, ccmds.Hinters...)
 	Hinters = append(Hinters, AddedHinters...)
 
-	SupportedProposalOperationFactHinters = append(SupportedProposalOperationFactHinters, currencycmds.SupportedProposalOperationFactHinters...)
+	SupportedProposalOperationFactHinters = append(SupportedProposalOperationFactHinters, ccmds.SupportedProposalOperationFactHinters...)
 	SupportedProposalOperationFactHinters = append(SupportedProposalOperationFactHinters, AddedSupportedHinters...)
 }
 

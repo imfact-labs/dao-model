@@ -1,7 +1,7 @@
 package types
 
 import (
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/encoder"
@@ -30,7 +30,7 @@ func (cd *TransferCallData) unpack(enc encoder.Encoder, ht hint.Hint, sd, rc str
 
 	if hinter, err := enc.Decode(bam); err != nil {
 		return e.Wrap(err)
-	} else if am, ok := hinter.(currencytypes.Amount); !ok {
+	} else if am, ok := hinter.(ctypes.Amount); !ok {
 		return e.Wrap(errors.Errorf("expected Amount, not %T", hinter))
 	} else {
 		cd.amount = am

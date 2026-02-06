@@ -1,23 +1,24 @@
 package digest
 
 import (
-	currencydigest "github.com/ProtoconNet/mitum-currency/v3/digest"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	"net/http"
+
+	cdigest "github.com/ProtoconNet/mitum-currency/v3/digest"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum-dao/state"
 	"github.com/ProtoconNet/mitum-dao/types"
 	mitumutil "github.com/ProtoconNet/mitum2/util"
-	"net/http"
 )
 
 var (
-	HandlerPathDAOService        = `/dao/{contract:(?i)` + currencytypes.REStringAddressString + `}`
-	HandlerPathDAOProposal       = `/dao/{contract:(?i)` + currencytypes.REStringAddressString + `}/proposal/{proposal_id:` + currencytypes.ReSpecialCh + `}`
-	HandlerPathDAODelegator      = `/dao/{contract:(?i)` + currencytypes.REStringAddressString + `}/proposal/{proposal_id:` + currencytypes.ReSpecialCh + `}/registrant/{address:(?i)` + currencytypes.REStringAddressString + `}`
-	HandlerPathDAOVoters         = `/dao/{contract:(?i)` + currencytypes.REStringAddressString + `}/proposal/{proposal_id:` + currencytypes.ReSpecialCh + `}/voter`
-	HandlerPathDAOVotingPowerBox = `/dao/{contract:(?i)` + currencytypes.REStringAddressString + `}/proposal/{proposal_id:` + currencytypes.ReSpecialCh + `}/votingpower` // revive:disable-line:line-length-limit
+	HandlerPathDAOService        = `/dao/{contract:(?i)` + ctypes.REStringAddressString + `}`
+	HandlerPathDAOProposal       = `/dao/{contract:(?i)` + ctypes.REStringAddressString + `}/proposal/{proposal_id:` + ctypes.ReSpecialCh + `}`
+	HandlerPathDAODelegator      = `/dao/{contract:(?i)` + ctypes.REStringAddressString + `}/proposal/{proposal_id:` + ctypes.ReSpecialCh + `}/registrant/{address:(?i)` + ctypes.REStringAddressString + `}`
+	HandlerPathDAOVoters         = `/dao/{contract:(?i)` + ctypes.REStringAddressString + `}/proposal/{proposal_id:` + ctypes.ReSpecialCh + `}/voter`
+	HandlerPathDAOVotingPowerBox = `/dao/{contract:(?i)` + ctypes.REStringAddressString + `}/proposal/{proposal_id:` + ctypes.ReSpecialCh + `}/votingpower` // revive:disable-line:line-length-limit
 )
 
-func SetHandlers(hd *currencydigest.Handlers) {
+func SetHandlers(hd *cdigest.Handlers) {
 	get := 1000
 	_ = hd.SetHandler(HandlerPathDAOService, HandleDAOService, true, get, get).
 		Methods(http.MethodOptions, "GET")
@@ -31,15 +32,15 @@ func SetHandlers(hd *currencydigest.Handlers) {
 		Methods(http.MethodOptions, "GET")
 }
 
-func HandleDAOService(hd *currencydigest.Handlers, w http.ResponseWriter, r *http.Request) {
-	cacheKey := currencydigest.CacheKeyPath(r)
-	if err := currencydigest.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
+func HandleDAOService(hd *cdigest.Handlers, w http.ResponseWriter, r *http.Request) {
+	cacheKey := cdigest.CacheKeyPath(r)
+	if err := cdigest.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
 		return
 	}
 
-	contract, err, status := currencydigest.ParseRequest(w, r, "contract")
+	contract, err, status := cdigest.ParseRequest(w, r, "contract")
 	if err != nil {
-		currencydigest.HTTP2ProblemWithError(w, err, status)
+		cdigest.HTTP2ProblemWithError(w, err, status)
 
 		return
 	}
@@ -47,16 +48,16 @@ func HandleDAOService(hd *currencydigest.Handlers, w http.ResponseWriter, r *htt
 	if v, err, shared := hd.RG().Do(cacheKey, func() (interface{}, error) {
 		return handleDAODesignInGroup(hd, contract)
 	}); err != nil {
-		currencydigest.HTTP2HandleError(w, err)
+		cdigest.HTTP2HandleError(w, err)
 	} else {
-		currencydigest.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
+		cdigest.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
 		if !shared {
-			currencydigest.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
+			cdigest.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
 		}
 	}
 }
 
-func handleDAODesignInGroup(hd *currencydigest.Handlers, contract string) (interface{}, error) {
+func handleDAODesignInGroup(hd *cdigest.Handlers, contract string) (interface{}, error) {
 	switch design, err := DAOService(hd.Database(), contract); {
 	case err != nil:
 		return nil, mitumutil.ErrNotFound.WithMessage(err, "dao service, contract %s", contract)
@@ -71,49 +72,49 @@ func handleDAODesignInGroup(hd *currencydigest.Handlers, contract string) (inter
 	}
 }
 
-func buildDAODesignHal(hd *currencydigest.Handlers, contract string, design types.Design) (currencydigest.Hal, error) {
+func buildDAODesignHal(hd *cdigest.Handlers, contract string, design types.Design) (cdigest.Hal, error) {
 	h, err := hd.CombineURL(HandlerPathDAOService, "contract", contract)
 	if err != nil {
 		return nil, err
 	}
 
-	hal := currencydigest.NewBaseHal(design, currencydigest.NewHalLink(h, nil))
+	hal := cdigest.NewBaseHal(design, cdigest.NewHalLink(h, nil))
 
 	return hal, nil
 }
 
-func HandleDAOProposal(hd *currencydigest.Handlers, w http.ResponseWriter, r *http.Request) {
-	cacheKey := currencydigest.CacheKeyPath(r)
-	if err := currencydigest.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
+func HandleDAOProposal(hd *cdigest.Handlers, w http.ResponseWriter, r *http.Request) {
+	cacheKey := cdigest.CacheKeyPath(r)
+	if err := cdigest.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
 		return
 	}
 
-	contract, err, status := currencydigest.ParseRequest(w, r, "contract")
+	contract, err, status := cdigest.ParseRequest(w, r, "contract")
 	if err != nil {
-		currencydigest.HTTP2ProblemWithError(w, err, status)
+		cdigest.HTTP2ProblemWithError(w, err, status)
 
 		return
 	}
 
-	proposalID, err, status := currencydigest.ParseRequest(w, r, "proposal_id")
+	proposalID, err, status := cdigest.ParseRequest(w, r, "proposal_id")
 	if err != nil {
-		currencydigest.HTTP2ProblemWithError(w, err, status)
+		cdigest.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
 	if v, err, shared := hd.RG().Do(cacheKey, func() (interface{}, error) {
 		return handleDAOProposalInGroup(hd, contract, proposalID)
 	}); err != nil {
-		currencydigest.HTTP2HandleError(w, err)
+		cdigest.HTTP2HandleError(w, err)
 	} else {
-		currencydigest.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
+		cdigest.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
 		if !shared {
-			currencydigest.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
+			cdigest.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
 		}
 	}
 }
 
-func handleDAOProposalInGroup(hd *currencydigest.Handlers, contract, proposalID string) (interface{}, error) {
+func handleDAOProposalInGroup(hd *cdigest.Handlers, contract, proposalID string) (interface{}, error) {
 	switch proposal, err := DAOProposal(hd.Database(), contract, proposalID); {
 	case err != nil:
 		return nil, mitumutil.ErrNotFound.WithMessage(err, "proposal, contract %s, proposalID %s", contract, proposalID)
@@ -128,54 +129,54 @@ func handleDAOProposalInGroup(hd *currencydigest.Handlers, contract, proposalID 
 	}
 }
 
-func buildDAOProposalHal(hd *currencydigest.Handlers, contract, proposalID string, proposal state.ProposalStateValue) (currencydigest.Hal, error) {
+func buildDAOProposalHal(hd *cdigest.Handlers, contract, proposalID string, proposal state.ProposalStateValue) (cdigest.Hal, error) {
 	h, err := hd.CombineURL(HandlerPathDAOProposal, "contract", contract, "proposal_id", proposalID)
 	if err != nil {
 		return nil, err
 	}
 
-	hal := currencydigest.NewBaseHal(proposal, currencydigest.NewHalLink(h, nil))
+	hal := cdigest.NewBaseHal(proposal, cdigest.NewHalLink(h, nil))
 
 	return hal, nil
 }
 
-func HandleDAODelegator(hd *currencydigest.Handlers, w http.ResponseWriter, r *http.Request) {
-	cacheKey := currencydigest.CacheKeyPath(r)
-	if err := currencydigest.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
+func HandleDAODelegator(hd *cdigest.Handlers, w http.ResponseWriter, r *http.Request) {
+	cacheKey := cdigest.CacheKeyPath(r)
+	if err := cdigest.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
 		return
 	}
 
-	contract, err, status := currencydigest.ParseRequest(w, r, "contract")
+	contract, err, status := cdigest.ParseRequest(w, r, "contract")
 	if err != nil {
-		currencydigest.HTTP2ProblemWithError(w, err, status)
+		cdigest.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
-	proposalID, err, status := currencydigest.ParseRequest(w, r, "proposal_id")
+	proposalID, err, status := cdigest.ParseRequest(w, r, "proposal_id")
 	if err != nil {
-		currencydigest.HTTP2ProblemWithError(w, err, status)
+		cdigest.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
-	delegator, err, status := currencydigest.ParseRequest(w, r, "address")
+	delegator, err, status := cdigest.ParseRequest(w, r, "address")
 	if err != nil {
-		currencydigest.HTTP2ProblemWithError(w, err, status)
+		cdigest.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
 	if v, err, shared := hd.RG().Do(cacheKey, func() (interface{}, error) {
 		return handleDAODelegatorInGroup(hd, contract, proposalID, delegator)
 	}); err != nil {
-		currencydigest.HTTP2HandleError(w, err)
+		cdigest.HTTP2HandleError(w, err)
 	} else {
-		currencydigest.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
+		cdigest.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
 		if !shared {
-			currencydigest.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
+			cdigest.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
 		}
 	}
 }
 
-func handleDAODelegatorInGroup(hd *currencydigest.Handlers, contract, proposalID, delegator string) (interface{}, error) {
+func handleDAODelegatorInGroup(hd *cdigest.Handlers, contract, proposalID, delegator string) (interface{}, error) {
 	switch delegatorInfo, err := DAODelegatorInfo(hd.Database(), contract, proposalID, delegator); {
 	case err != nil:
 		return nil, mitumutil.ErrNotFound.WithMessage(err, "delegator info, contract %s, proposalID %s, delegator %s", contract, proposalID, delegator)
@@ -190,10 +191,10 @@ func handleDAODelegatorInGroup(hd *currencydigest.Handlers, contract, proposalID
 	}
 }
 
-func buildDAODelegatorHal(hd *currencydigest.Handlers,
+func buildDAODelegatorHal(hd *cdigest.Handlers,
 	contract, proposalID, delegator string,
 	delegatorInfo types.DelegatorInfo,
-) (currencydigest.Hal, error) {
+) (cdigest.Hal, error) {
 	h, err := hd.CombineURL(
 		HandlerPathDAODelegator,
 		"contract", contract,
@@ -204,42 +205,42 @@ func buildDAODelegatorHal(hd *currencydigest.Handlers,
 		return nil, err
 	}
 
-	hal := currencydigest.NewBaseHal(delegatorInfo, currencydigest.NewHalLink(h, nil))
+	hal := cdigest.NewBaseHal(delegatorInfo, cdigest.NewHalLink(h, nil))
 
 	return hal, nil
 }
 
-func HandleDAOVoters(hd *currencydigest.Handlers, w http.ResponseWriter, r *http.Request) {
-	cacheKey := currencydigest.CacheKeyPath(r)
-	if err := currencydigest.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
+func HandleDAOVoters(hd *cdigest.Handlers, w http.ResponseWriter, r *http.Request) {
+	cacheKey := cdigest.CacheKeyPath(r)
+	if err := cdigest.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
 		return
 	}
 
-	contract, err, status := currencydigest.ParseRequest(w, r, "contract")
+	contract, err, status := cdigest.ParseRequest(w, r, "contract")
 	if err != nil {
-		currencydigest.HTTP2ProblemWithError(w, err, status)
+		cdigest.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
-	proposalID, err, status := currencydigest.ParseRequest(w, r, "proposal_id")
+	proposalID, err, status := cdigest.ParseRequest(w, r, "proposal_id")
 	if err != nil {
-		currencydigest.HTTP2ProblemWithError(w, err, status)
+		cdigest.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
 	if v, err, shared := hd.RG().Do(cacheKey, func() (interface{}, error) {
 		return handleDAOVotersInGroup(hd, contract, proposalID)
 	}); err != nil {
-		currencydigest.HTTP2HandleError(w, err)
+		cdigest.HTTP2HandleError(w, err)
 	} else {
-		currencydigest.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
+		cdigest.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
 		if !shared {
-			currencydigest.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
+			cdigest.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
 		}
 	}
 }
 
-func handleDAOVotersInGroup(hd *currencydigest.Handlers, contract, proposalID string) (interface{}, error) {
+func handleDAOVotersInGroup(hd *cdigest.Handlers, contract, proposalID string) (interface{}, error) {
 	switch voters, err := DAOVoters(hd.Database(), contract, proposalID); {
 	case err != nil:
 		return nil, mitumutil.ErrNotFound.WithMessage(err, "voters, contract %s, proposalID %s", contract, proposalID)
@@ -254,50 +255,50 @@ func handleDAOVotersInGroup(hd *currencydigest.Handlers, contract, proposalID st
 	}
 }
 
-func buildDAOVotersHal(hd *currencydigest.Handlers,
+func buildDAOVotersHal(hd *cdigest.Handlers,
 	contract, proposalID string, voters []types.VoterInfo,
-) (currencydigest.Hal, error) {
+) (cdigest.Hal, error) {
 	h, err := hd.CombineURL(HandlerPathDAOVoters, "contract", contract, "proposal_id", proposalID)
 	if err != nil {
 		return nil, err
 	}
 
-	hal := currencydigest.NewBaseHal(voters, currencydigest.NewHalLink(h, nil))
+	hal := cdigest.NewBaseHal(voters, cdigest.NewHalLink(h, nil))
 
 	return hal, nil
 }
 
-func HandleDAOVotingPowerBox(hd *currencydigest.Handlers, w http.ResponseWriter, r *http.Request) {
-	cacheKey := currencydigest.CacheKeyPath(r)
-	if err := currencydigest.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
+func HandleDAOVotingPowerBox(hd *cdigest.Handlers, w http.ResponseWriter, r *http.Request) {
+	cacheKey := cdigest.CacheKeyPath(r)
+	if err := cdigest.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
 		return
 	}
 
-	contract, err, status := currencydigest.ParseRequest(w, r, "contract")
+	contract, err, status := cdigest.ParseRequest(w, r, "contract")
 	if err != nil {
-		currencydigest.HTTP2ProblemWithError(w, err, status)
+		cdigest.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
-	proposalID, err, status := currencydigest.ParseRequest(w, r, "proposal_id")
+	proposalID, err, status := cdigest.ParseRequest(w, r, "proposal_id")
 	if err != nil {
-		currencydigest.HTTP2ProblemWithError(w, err, status)
+		cdigest.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
 	if v, err, shared := hd.RG().Do(cacheKey, func() (interface{}, error) {
 		return handleDAOVotingPowerBoxInGroup(hd, contract, proposalID)
 	}); err != nil {
-		currencydigest.HTTP2HandleError(w, err)
+		cdigest.HTTP2HandleError(w, err)
 	} else {
-		currencydigest.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
+		cdigest.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
 		if !shared {
-			currencydigest.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
+			cdigest.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
 		}
 	}
 }
 
-func handleDAOVotingPowerBoxInGroup(hd *currencydigest.Handlers, contract, proposalID string) (interface{}, error) {
+func handleDAOVotingPowerBoxInGroup(hd *cdigest.Handlers, contract, proposalID string) (interface{}, error) {
 	switch votingPowerBox, err := DAOVotingPowerBox(hd.Database(), contract, proposalID); {
 	case err != nil:
 		return nil, mitumutil.ErrNotFound.WithMessage(err, "voting power box, contract %s, proposalID %s", contract, proposalID)
@@ -313,10 +314,10 @@ func handleDAOVotingPowerBoxInGroup(hd *currencydigest.Handlers, contract, propo
 	}
 }
 
-func buildDAOVotingPowerBoxHal(hd *currencydigest.Handlers,
+func buildDAOVotingPowerBoxHal(hd *cdigest.Handlers,
 	contract, proposalID string,
 	votingPowerBox types.VotingPowerBox,
-) (currencydigest.Hal, error) {
+) (cdigest.Hal, error) {
 	h, err := hd.CombineURL(
 		HandlerPathDAOVotingPowerBox,
 		"contract", contract,
@@ -326,7 +327,7 @@ func buildDAOVotingPowerBoxHal(hd *currencydigest.Handlers,
 		return nil, err
 	}
 
-	hal := currencydigest.NewBaseHal(votingPowerBox, currencydigest.NewHalLink(h, nil))
+	hal := cdigest.NewBaseHal(votingPowerBox, cdigest.NewHalLink(h, nil))
 
 	return hal, nil
 }

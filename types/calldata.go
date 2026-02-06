@@ -1,7 +1,7 @@
 package types
 
 import (
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/hint"
@@ -29,10 +29,10 @@ type TransferCallData struct {
 	hint.BaseHinter
 	sender   base.Address
 	receiver base.Address
-	amount   currencytypes.Amount
+	amount   ctypes.Amount
 }
 
-func NewTransferCallData(sender base.Address, receiver base.Address, amount currencytypes.Amount) TransferCallData {
+func NewTransferCallData(sender base.Address, receiver base.Address, amount ctypes.Amount) TransferCallData {
 	return TransferCallData{
 		BaseHinter: hint.NewBaseHinter(TransferCalldataHint),
 		sender:     sender,
@@ -57,7 +57,7 @@ func (cd TransferCallData) Receiver() base.Address {
 	return cd.receiver
 }
 
-func (cd TransferCallData) Amount() currencytypes.Amount {
+func (cd TransferCallData) Amount() ctypes.Amount {
 	return cd.amount
 }
 

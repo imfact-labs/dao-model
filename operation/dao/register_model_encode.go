@@ -2,7 +2,7 @@ package dao
 
 import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum-dao/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util/encoder"
@@ -16,9 +16,9 @@ func (fact *RegisterModelFact) unpack(enc encoder.Encoder,
 	to, qou uint,
 	cid string,
 ) error {
-	fact.currency = currencytypes.CurrencyID(cid)
+	fact.currency = ctypes.CurrencyID(cid)
 	fact.option = types.DAOOption(op)
-	fact.votingPowerToken = currencytypes.CurrencyID(tk)
+	fact.votingPowerToken = ctypes.CurrencyID(tk)
 	fact.proposalReviewPeriod = prp
 	fact.registrationPeriod = rp
 	fact.preSnapshotPeriod = prsp
@@ -50,7 +50,7 @@ func (fact *RegisterModelFact) unpack(enc encoder.Encoder,
 
 	if hinter, err := enc.Decode(bf); err != nil {
 		return err
-	} else if am, ok := hinter.(currencytypes.Amount); !ok {
+	} else if am, ok := hinter.(ctypes.Amount); !ok {
 		return common.ErrTypeMismatch.Wrap(errors.Errorf("expected Amount, not %T", hinter))
 	} else {
 		fact.proposalFee = am

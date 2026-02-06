@@ -3,8 +3,8 @@ package cmds
 import (
 	"context"
 
-	currencycmds "github.com/ProtoconNet/mitum-currency/v3/cmds"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	ccmds "github.com/ProtoconNet/mitum-currency/v3/cmds"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum-dao/operation/dao"
 	"github.com/ProtoconNet/mitum-dao/types"
 	"github.com/ProtoconNet/mitum2/base"
@@ -13,24 +13,24 @@ import (
 )
 
 type TransferCallDataCommand struct {
-	From   currencycmds.AddressFlag        `name:"from" help:"call data sender"`
-	To     currencycmds.AddressFlag        `name:"to" help:"call data receiver"`
-	Amount currencycmds.CurrencyAmountFlag `name:"amount" help:"call data amount"`
+	From   ccmds.AddressFlag        `name:"from" help:"call data sender"`
+	To     ccmds.AddressFlag        `name:"to" help:"call data receiver"`
+	Amount ccmds.CurrencyAmountFlag `name:"amount" help:"call data amount"`
 }
 
 type GovernanceCallDataCommand struct {
-	VotingPowerToken     currencycmds.CurrencyIDFlag     `name:"voting-power-token" help:"voting power token"`
-	Threshold            currencycmds.BigFlag            `name:"threshold" help:"threshold to propose"`
-	Fee                  currencycmds.CurrencyAmountFlag `name:"fee" help:"fee to propose"`
-	ProposalReviewPeriod uint64                          `name:"proposal-review-period" help:"proposal review period"`
-	RegistrationPeriod   uint64                          `name:"registration-period" help:"registration period"`
-	PreSnapshotPeriod    uint64                          `name:"pre-snapshot-period" help:"pre snapshot period"`
-	VotingPeriod         uint64                          `name:"voting-period" help:"voting period"`
-	PostSnapshotPeriod   uint64                          `name:"post-snapshot-period" help:"post snapshot period"`
-	ExecutionDelayPeriod uint64                          `name:"execution-delay-period" help:"execution delay period"`
-	Turnout              uint                            `name:"turnout" help:"turnout"`
-	Quorum               uint                            `name:"quorum" help:"quorum"`
-	Whitelist            currencycmds.AddressFlag        `name:"whitelist" help:"whitelist account"`
+	VotingPowerToken     ccmds.CurrencyIDFlag     `name:"voting-power-token" help:"voting power token"`
+	Threshold            ccmds.BigFlag            `name:"threshold" help:"threshold to propose"`
+	Fee                  ccmds.CurrencyAmountFlag `name:"fee" help:"fee to propose"`
+	ProposalReviewPeriod uint64                   `name:"proposal-review-period" help:"proposal review period"`
+	RegistrationPeriod   uint64                   `name:"registration-period" help:"registration period"`
+	PreSnapshotPeriod    uint64                   `name:"pre-snapshot-period" help:"pre snapshot period"`
+	VotingPeriod         uint64                   `name:"voting-period" help:"voting period"`
+	PostSnapshotPeriod   uint64                   `name:"post-snapshot-period" help:"post snapshot period"`
+	ExecutionDelayPeriod uint64                   `name:"execution-delay-period" help:"execution delay period"`
+	Turnout              uint                     `name:"turnout" help:"turnout"`
+	Quorum               uint                     `name:"quorum" help:"quorum"`
+	Whitelist            ccmds.AddressFlag        `name:"whitelist" help:"whitelist account"`
 }
 
 type CryptoProposalCommand struct {
@@ -47,15 +47,15 @@ type BizProposalCommand struct {
 
 type ProposeCommand struct {
 	BaseCommand
-	currencycmds.OperationFlags
-	Sender     currencycmds.AddressFlag `arg:"" name:"sender" help:"sender address" required:"true"`
-	Contract   currencycmds.AddressFlag `arg:"" name:"contract" help:"contract address of credential" required:"true"`
-	Option     types.DAOOption          `arg:"" name:"option" help:"propose option; crypto | biz" required:"true"`
-	ProposalID string                   `arg:"" name:"proposal-id" help:"proposal id" required:"true"`
-	StartTime  uint64                   `arg:"" name:"start-time" help:"start time to proposal lifecycle" required:"true"`
+	ccmds.OperationFlags
+	Sender     ccmds.AddressFlag `arg:"" name:"sender" help:"sender address" required:"true"`
+	Contract   ccmds.AddressFlag `arg:"" name:"contract" help:"contract address of credential" required:"true"`
+	Option     types.DAOOption   `arg:"" name:"option" help:"propose option; crypto | biz" required:"true"`
+	ProposalID string            `arg:"" name:"proposal-id" help:"proposal id" required:"true"`
+	StartTime  uint64            `arg:"" name:"start-time" help:"start time to proposal lifecycle" required:"true"`
 	CryptoProposalCommand
 	BizProposalCommand
-	Currency currencycmds.CurrencyIDFlag `arg:"" name:"currency-id" help:"currency id" required:"true"`
+	Currency ccmds.CurrencyIDFlag `arg:"" name:"currency-id" help:"currency id" required:"true"`
 	sender   base.Address
 	contract base.Address
 	proposal types.Proposal
@@ -75,7 +75,7 @@ func (cmd *ProposeCommand) Run(pctx context.Context) error { // nolint:dupl
 		return err
 	}
 
-	currencycmds.PrettyPrint(cmd.Out, op)
+	ccmds.PrettyPrint(cmd.Out, op)
 
 	return nil
 }
@@ -109,7 +109,7 @@ func (cmd *ProposeCommand) parseFlags() error {
 				return errors.Wrapf(err, "invalid to address format, %q", cmd.To.String())
 			}
 
-			amount := currencytypes.NewAmount(cmd.Amount.Big, cmd.Amount.CID)
+			amount := ctypes.NewAmount(cmd.Amount.Big, cmd.Amount.CID)
 
 			callData := types.NewTransferCallData(from, to, amount)
 			if err := callData.IsValid(nil); err != nil {
@@ -132,7 +132,7 @@ func (cmd *ProposeCommand) parseFlags() error {
 				whitelist = types.NewWhitelist(true, []base.Address{a})
 			}
 
-			fee := currencytypes.NewAmount(cmd.Fee.Big, cmd.Fee.CID)
+			fee := ctypes.NewAmount(cmd.Fee.Big, cmd.Fee.CID)
 
 			policy := types.NewPolicy(
 				cmd.VotingPowerToken.CID, cmd.Threshold.Big,

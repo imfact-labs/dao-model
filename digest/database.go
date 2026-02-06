@@ -1,7 +1,7 @@
 package digest
 
 import (
-	currencydigest "github.com/ProtoconNet/mitum-currency/v3/digest"
+	cdigest "github.com/ProtoconNet/mitum-currency/v3/digest"
 	"github.com/ProtoconNet/mitum-currency/v3/digest/util"
 	"github.com/ProtoconNet/mitum-dao/state"
 	"github.com/ProtoconNet/mitum-dao/types"
@@ -19,7 +19,7 @@ var (
 	DefaultColNameDAOVotingPowerBox = "digest_dao_vpb"
 )
 
-func DAOService(st *currencydigest.Database, contract string) (*types.Design, error) {
+func DAOService(st *cdigest.Database, contract string) (*types.Design, error) {
 	filter := util.NewBSONFilter("contract", contract)
 
 	var design types.Design
@@ -31,7 +31,7 @@ func DAOService(st *currencydigest.Database, contract string) (*types.Design, er
 		DefaultColNameDAO,
 		filter.D(),
 		func(res *mongo.SingleResult) error {
-			sta, err = currencydigest.LoadState(res.Decode, st.Encoders())
+			sta, err = cdigest.LoadState(res.Decode, st.Encoders())
 			if err != nil {
 				return err
 			}
@@ -51,7 +51,7 @@ func DAOService(st *currencydigest.Database, contract string) (*types.Design, er
 	return &design, nil
 }
 
-func DAODelegatorInfo(st *currencydigest.Database, contract, proposalID, delegator string) (*types.DelegatorInfo, error) {
+func DAODelegatorInfo(st *cdigest.Database, contract, proposalID, delegator string) (*types.DelegatorInfo, error) {
 	var (
 		delegators    []types.DelegatorInfo
 		sta           mitumbase.State
@@ -68,7 +68,7 @@ func DAODelegatorInfo(st *currencydigest.Database, contract, proposalID, delegat
 		DefaultColNameDAODelegators,
 		filter.D(),
 		func(res *mongo.SingleResult) error {
-			sta, err = currencydigest.LoadState(res.Decode, st.Encoders())
+			sta, err = cdigest.LoadState(res.Decode, st.Encoders())
 			if err != nil {
 				return err
 			}
@@ -97,7 +97,7 @@ func DAODelegatorInfo(st *currencydigest.Database, contract, proposalID, delegat
 	return delegatorInfo, nil
 }
 
-func DAOVoters(st *currencydigest.Database, contract, proposalID string) ([]types.VoterInfo, error) {
+func DAOVoters(st *cdigest.Database, contract, proposalID string) ([]types.VoterInfo, error) {
 	filter := util.NewBSONFilter("contract", contract)
 	filter = filter.Add("proposal_id", proposalID)
 
@@ -110,7 +110,7 @@ func DAOVoters(st *currencydigest.Database, contract, proposalID string) ([]type
 		DefaultColNameDAOVoters,
 		filter.D(),
 		func(res *mongo.SingleResult) error {
-			sta, err = currencydigest.LoadState(res.Decode, st.Encoders())
+			sta, err = cdigest.LoadState(res.Decode, st.Encoders())
 			if err != nil {
 				return err
 			}
@@ -129,7 +129,7 @@ func DAOVoters(st *currencydigest.Database, contract, proposalID string) ([]type
 	return voters, nil
 }
 
-func DAOProposal(st *currencydigest.Database, contract, proposalID string) (*state.ProposalStateValue, error) {
+func DAOProposal(st *cdigest.Database, contract, proposalID string) (*state.ProposalStateValue, error) {
 	filter := util.NewBSONFilter("contract", contract)
 	filter = filter.Add("proposal_id", proposalID)
 
@@ -142,7 +142,7 @@ func DAOProposal(st *currencydigest.Database, contract, proposalID string) (*sta
 		DefaultColNameDAOProposal,
 		filter.D(),
 		func(res *mongo.SingleResult) error {
-			sta, err = currencydigest.LoadState(res.Decode, st.Encoders())
+			sta, err = cdigest.LoadState(res.Decode, st.Encoders())
 			if err != nil {
 				return err
 			}
@@ -161,7 +161,7 @@ func DAOProposal(st *currencydigest.Database, contract, proposalID string) (*sta
 	return &proposal, nil
 }
 
-func DAOVotingPowerBox(st *currencydigest.Database, contract, proposalID string) (*types.VotingPowerBox, error) {
+func DAOVotingPowerBox(st *cdigest.Database, contract, proposalID string) (*types.VotingPowerBox, error) {
 	filter := util.NewBSONFilter("contract", contract)
 	filter = filter.Add("proposal_id", proposalID)
 
@@ -174,7 +174,7 @@ func DAOVotingPowerBox(st *currencydigest.Database, contract, proposalID string)
 		DefaultColNameDAOVotingPowerBox,
 		filter.D(),
 		func(res *mongo.SingleResult) error {
-			sta, err = currencydigest.LoadState(res.Decode, st.Encoders())
+			sta, err = cdigest.LoadState(res.Decode, st.Encoders())
 			if err != nil {
 				return err
 			}

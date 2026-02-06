@@ -2,10 +2,10 @@ package dao
 
 import (
 	"encoding/json"
-	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
 
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum-dao/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
@@ -14,11 +14,11 @@ import (
 
 type ProposeFactJSONMarshaler struct {
 	base.BaseFactJSONMarshaler
-	Owner      base.Address             `json:"sender"`
-	Contract   base.Address             `json:"contract"`
-	ProposalID string                   `json:"proposal_id"`
-	Proposal   types.Proposal           `json:"proposal"`
-	Currency   currencytypes.CurrencyID `json:"currency"`
+	Owner      base.Address      `json:"sender"`
+	Contract   base.Address      `json:"contract"`
+	ProposalID string            `json:"proposal_id"`
+	Proposal   types.Proposal    `json:"proposal"`
+	Currency   ctypes.CurrencyID `json:"currency"`
 }
 
 func (fact ProposeFact) MarshalJSON() ([]byte, error) {

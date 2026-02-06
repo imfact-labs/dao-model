@@ -1,27 +1,27 @@
 package digest
 
 import (
-	mongodbstorage "github.com/ProtoconNet/mitum-currency/v3/digest/mongodb"
+	mongodbst "github.com/ProtoconNet/mitum-currency/v3/digest/mongodb"
 	bsonenc "github.com/ProtoconNet/mitum-currency/v3/digest/util/bson"
-	crcystate "github.com/ProtoconNet/mitum-currency/v3/state"
-	"github.com/ProtoconNet/mitum-dao/state"
+	"github.com/ProtoconNet/mitum-currency/v3/state"
+	statedao "github.com/ProtoconNet/mitum-dao/state"
 	"github.com/ProtoconNet/mitum-dao/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util/encoder"
 )
 
 type DAODesignDoc struct {
-	mongodbstorage.BaseDoc
+	mongodbst.BaseDoc
 	st base.State
 	de types.Design
 }
 
 func NewDAODesignDoc(st base.State, enc encoder.Encoder) (DAODesignDoc, error) {
-	de, err := state.StateDesignValue(st)
+	de, err := statedao.StateDesignValue(st)
 	if err != nil {
 		return DAODesignDoc{}, err
 	}
-	b, err := mongodbstorage.NewBaseDoc(nil, st, enc)
+	b, err := mongodbst.NewBaseDoc(nil, st, enc)
 	if err != nil {
 		return DAODesignDoc{}, err
 	}
@@ -39,7 +39,7 @@ func (doc DAODesignDoc) MarshalBSON() ([]byte, error) {
 		return nil, err
 	}
 
-	parsedKey, err := crcystate.ParseStateKey(doc.st.Key(), state.DAOPrefix, 3)
+	parsedKey, err := state.ParseStateKey(doc.st.Key(), statedao.DAOPrefix, 3)
 	m["contract"] = parsedKey[1]
 	m["height"] = doc.st.Height()
 	//m["design"] = doc.de
@@ -48,7 +48,7 @@ func (doc DAODesignDoc) MarshalBSON() ([]byte, error) {
 }
 
 type DAOProposalDoc struct {
-	mongodbstorage.BaseDoc
+	mongodbst.BaseDoc
 	st  base.State
 	pr  types.Proposal
 	ps  types.ProposalStatus
@@ -56,11 +56,11 @@ type DAOProposalDoc struct {
 }
 
 func NewDAOProposalDoc(st base.State, enc encoder.Encoder) (DAOProposalDoc, error) {
-	pv, err := state.StateProposalValue(st)
+	pv, err := statedao.StateProposalValue(st)
 	if err != nil {
 		return DAOProposalDoc{}, err
 	}
-	b, err := mongodbstorage.NewBaseDoc(nil, st, enc)
+	b, err := mongodbst.NewBaseDoc(nil, st, enc)
 	if err != nil {
 		return DAOProposalDoc{}, err
 	}
@@ -80,7 +80,7 @@ func (doc DAOProposalDoc) MarshalBSON() ([]byte, error) {
 		return nil, err
 	}
 
-	parsedKey, err := crcystate.ParseStateKey(doc.st.Key(), state.DAOPrefix, 4)
+	parsedKey, err := state.ParseStateKey(doc.st.Key(), statedao.DAOPrefix, 4)
 	m["contract"] = parsedKey[1]
 	m["proposal_id"] = parsedKey[2]
 	m["height"] = doc.st.Height()
@@ -92,17 +92,17 @@ func (doc DAOProposalDoc) MarshalBSON() ([]byte, error) {
 }
 
 type DAODelegatorsDoc struct {
-	mongodbstorage.BaseDoc
+	mongodbst.BaseDoc
 	st base.State
 	di []types.DelegatorInfo
 }
 
 func NewDAODelegatorsDoc(st base.State, enc encoder.Encoder) (DAODelegatorsDoc, error) {
-	di, err := state.StateDelegatorsValue(st)
+	di, err := statedao.StateDelegatorsValue(st)
 	if err != nil {
 		return DAODelegatorsDoc{}, err
 	}
-	b, err := mongodbstorage.NewBaseDoc(nil, st, enc)
+	b, err := mongodbst.NewBaseDoc(nil, st, enc)
 	if err != nil {
 		return DAODelegatorsDoc{}, err
 	}
@@ -120,7 +120,7 @@ func (doc DAODelegatorsDoc) MarshalBSON() ([]byte, error) {
 		return nil, err
 	}
 
-	parsedKey, err := crcystate.ParseStateKey(doc.st.Key(), state.DAOPrefix, 4)
+	parsedKey, err := state.ParseStateKey(doc.st.Key(), statedao.DAOPrefix, 4)
 	m["contract"] = parsedKey[1]
 	m["proposal_id"] = parsedKey[2]
 	m["height"] = doc.st.Height()
@@ -130,17 +130,17 @@ func (doc DAODelegatorsDoc) MarshalBSON() ([]byte, error) {
 }
 
 type DAOVotersDoc struct {
-	mongodbstorage.BaseDoc
+	mongodbst.BaseDoc
 	st base.State
 	vi []types.VoterInfo
 }
 
 func NewDAOVotersDoc(st base.State, enc encoder.Encoder) (DAOVotersDoc, error) {
-	vi, err := state.StateVotersValue(st)
+	vi, err := statedao.StateVotersValue(st)
 	if err != nil {
 		return DAOVotersDoc{}, err
 	}
-	b, err := mongodbstorage.NewBaseDoc(nil, st, enc)
+	b, err := mongodbst.NewBaseDoc(nil, st, enc)
 	if err != nil {
 		return DAOVotersDoc{}, err
 	}
@@ -158,7 +158,7 @@ func (doc DAOVotersDoc) MarshalBSON() ([]byte, error) {
 		return nil, err
 	}
 
-	parsedKey, err := crcystate.ParseStateKey(doc.st.Key(), state.DAOPrefix, 4)
+	parsedKey, err := state.ParseStateKey(doc.st.Key(), statedao.DAOPrefix, 4)
 	m["contract"] = parsedKey[1]
 	m["proposal_id"] = parsedKey[2]
 	m["height"] = doc.st.Height()
@@ -168,17 +168,17 @@ func (doc DAOVotersDoc) MarshalBSON() ([]byte, error) {
 }
 
 type DAOVotingPowerBoxDoc struct {
-	mongodbstorage.BaseDoc
+	mongodbst.BaseDoc
 	st  base.State
 	vpb types.VotingPowerBox
 }
 
 func NewDAOVotingPowerBoxDoc(st base.State, enc encoder.Encoder) (DAOVotingPowerBoxDoc, error) {
-	vpb, err := state.StateVotingPowerBoxValue(st)
+	vpb, err := statedao.StateVotingPowerBoxValue(st)
 	if err != nil {
 		return DAOVotingPowerBoxDoc{}, err
 	}
-	b, err := mongodbstorage.NewBaseDoc(nil, st, enc)
+	b, err := mongodbst.NewBaseDoc(nil, st, enc)
 	if err != nil {
 		return DAOVotingPowerBoxDoc{}, err
 	}
@@ -196,7 +196,7 @@ func (doc DAOVotingPowerBoxDoc) MarshalBSON() ([]byte, error) {
 		return nil, err
 	}
 
-	parsedKey, err := crcystate.ParseStateKey(doc.st.Key(), state.DAOPrefix, 4)
+	parsedKey, err := state.ParseStateKey(doc.st.Key(), statedao.DAOPrefix, 4)
 	m["contract"] = parsedKey[1]
 	m["proposal_id"] = parsedKey[2]
 	m["height"] = doc.st.Height()

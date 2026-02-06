@@ -2,7 +2,7 @@ package types
 
 import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/encoder"
@@ -40,7 +40,7 @@ func (po *Policy) unpack(enc encoder.Encoder, ht hint.Hint,
 	e := util.StringError("failed to unmarshal Policy")
 
 	po.BaseHinter = hint.NewBaseHinter(ht)
-	po.votingPowerToken = currencytypes.CurrencyID(cr)
+	po.votingPowerToken = ctypes.CurrencyID(cr)
 	po.proposalReviewPeriod = rvp
 	po.registrationPeriod = rgp
 	po.preSnapshotPeriod = prsp
@@ -58,7 +58,7 @@ func (po *Policy) unpack(enc encoder.Encoder, ht hint.Hint,
 
 	if hinter, err := enc.Decode(bf); err != nil {
 		return e.Wrap(err)
-	} else if am, ok := hinter.(currencytypes.Amount); !ok {
+	} else if am, ok := hinter.(ctypes.Amount); !ok {
 		return e.Wrap(errors.Errorf("expected Amount, not %T", hinter))
 	} else {
 		po.proposalFee = am

@@ -3,7 +3,7 @@ package types
 import (
 	"encoding/json"
 
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/encoder"
@@ -12,9 +12,9 @@ import (
 
 type TransferCalldataJSONMarshaler struct {
 	hint.BaseHinter
-	Sender   base.Address         `json:"sender"`
-	Receiver base.Address         `json:"receiver"`
-	Amount   currencytypes.Amount `json:"amount"`
+	Sender   base.Address  `json:"sender"`
+	Receiver base.Address  `json:"receiver"`
+	Amount   ctypes.Amount `json:"amount"`
 }
 
 func (cd TransferCallData) MarshalJSON() ([]byte, error) {

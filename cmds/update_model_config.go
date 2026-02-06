@@ -3,8 +3,8 @@ package cmds
 import (
 	"context"
 
-	currencycmds "github.com/ProtoconNet/mitum-currency/v3/cmds"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	ccmds "github.com/ProtoconNet/mitum-currency/v3/cmds"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum-dao/operation/dao"
 	"github.com/ProtoconNet/mitum-dao/types"
 	"github.com/ProtoconNet/mitum2/base"
@@ -14,27 +14,27 @@ import (
 
 type UpdateModelConfigCommand struct {
 	BaseCommand
-	currencycmds.OperationFlags
-	Sender               currencycmds.AddressFlag        `arg:"" name:"sender" help:"sender address" required:"true"`
-	Contract             currencycmds.AddressFlag        `arg:"" name:"contract" help:"contract address of credential" required:"true"`
-	Option               string                          `arg:"" name:"dao-option" help:"dao option" required:"true"`
-	VotingPowerToken     currencycmds.CurrencyIDFlag     `arg:"" name:"voting-power-token" help:"voting power token" required:"true"`
-	Threshold            currencycmds.BigFlag            `arg:"" name:"threshold" help:"threshold to propose" required:"true"`
-	Fee                  currencycmds.CurrencyAmountFlag `arg:"" name:"fee" help:"fee to propose" required:"true"`
-	ProposalReviewPeriod uint64                          `arg:"" name:"proposal-review-period" help:"proposal review period" required:"true"`
-	RegistrationPeriod   uint64                          `arg:"" name:"registration-period" help:"registration period" required:"true"`
-	PreSnapshotPeriod    uint64                          `arg:"" name:"pre-snapshot-period" help:"pre snapshot period" required:"true"`
-	VotingPeriod         uint64                          `arg:"" name:"voting-period" help:"voting period" required:"true"`
-	PostSnapshotPeriod   uint64                          `arg:"" name:"post-snapshot-period" help:"post snapshot period" required:"true"`
-	ExecutionDelayPeriod uint64                          `arg:"" name:"execution-delay-period" help:"execution delay period" required:"true"`
-	Turnout              uint                            `arg:"" name:"turnout" help:"turnout" required:"true"`
-	Quorum               uint                            `arg:"" name:"quorum" help:"quorum" required:"true"`
-	Whitelist            currencycmds.AddressFlag        `name:"whitelist" help:"whitelist account"`
-	Currency             currencycmds.CurrencyIDFlag     `arg:"" name:"currency-id" help:"currency id" required:"true"`
+	ccmds.OperationFlags
+	Sender               ccmds.AddressFlag        `arg:"" name:"sender" help:"sender address" required:"true"`
+	Contract             ccmds.AddressFlag        `arg:"" name:"contract" help:"contract address of credential" required:"true"`
+	Option               string                   `arg:"" name:"dao-option" help:"dao option" required:"true"`
+	VotingPowerToken     ccmds.CurrencyIDFlag     `arg:"" name:"voting-power-token" help:"voting power token" required:"true"`
+	Threshold            ccmds.BigFlag            `arg:"" name:"threshold" help:"threshold to propose" required:"true"`
+	Fee                  ccmds.CurrencyAmountFlag `arg:"" name:"fee" help:"fee to propose" required:"true"`
+	ProposalReviewPeriod uint64                   `arg:"" name:"proposal-review-period" help:"proposal review period" required:"true"`
+	RegistrationPeriod   uint64                   `arg:"" name:"registration-period" help:"registration period" required:"true"`
+	PreSnapshotPeriod    uint64                   `arg:"" name:"pre-snapshot-period" help:"pre snapshot period" required:"true"`
+	VotingPeriod         uint64                   `arg:"" name:"voting-period" help:"voting period" required:"true"`
+	PostSnapshotPeriod   uint64                   `arg:"" name:"post-snapshot-period" help:"post snapshot period" required:"true"`
+	ExecutionDelayPeriod uint64                   `arg:"" name:"execution-delay-period" help:"execution delay period" required:"true"`
+	Turnout              uint                     `arg:"" name:"turnout" help:"turnout" required:"true"`
+	Quorum               uint                     `arg:"" name:"quorum" help:"quorum" required:"true"`
+	Whitelist            ccmds.AddressFlag        `name:"whitelist" help:"whitelist account"`
+	Currency             ccmds.CurrencyIDFlag     `arg:"" name:"currency-id" help:"currency id" required:"true"`
 	sender               base.Address
 	contract             base.Address
 	whitelist            types.Whitelist
-	fee                  currencytypes.Amount
+	fee                  ctypes.Amount
 }
 
 func (cmd *UpdateModelConfigCommand) Run(pctx context.Context) error { // nolint:dupl
@@ -51,7 +51,7 @@ func (cmd *UpdateModelConfigCommand) Run(pctx context.Context) error { // nolint
 		return err
 	}
 
-	currencycmds.PrettyPrint(cmd.Out, op)
+	ccmds.PrettyPrint(cmd.Out, op)
 
 	return nil
 }
@@ -83,7 +83,7 @@ func (cmd *UpdateModelConfigCommand) parseFlags() error {
 		cmd.whitelist = types.NewWhitelist(false, []base.Address{})
 	}
 
-	cmd.fee = currencytypes.NewAmount(cmd.Fee.Big, cmd.Fee.CID)
+	cmd.fee = ctypes.NewAmount(cmd.Fee.Big, cmd.Fee.CID)
 
 	return nil
 }
