@@ -1,23 +1,23 @@
-### mitum-dao
+### dao-model
 
-*mitum-dao* is a [mitum](https://github.com/ProtoconNet/mitum2)-based contract model and is a service that provides dao function.
+*dao-model* is a dao contract model based on [mitum](https://github.com/imfact-labs/mitum2).
 
 #### Installation
 
 ```sh
-$ git clone https://github.com/ProtoconNet/mitum-dao
+$ git clone https://github.com/imfact-labs/dao-model
 
-$ cd mitum-dao
+$ cd dao-model
 
-$ go build -o ./md ./main.go
+$ go build -o ./imfact ./main.go
 ```
 
 #### Run
 
 ```sh
-$ ./md init --design=<config file> <genesis config file>
+$ ./imfact init --design=<config file> <genesis config file>
 
-$ ./md run --design=<config file>
+$ ./imfact run --design=<config file>
 ```
 
 [standalong.yml](standalone.yml) is a sample of `config file`.

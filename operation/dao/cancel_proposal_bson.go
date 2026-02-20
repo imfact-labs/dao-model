@@ -1,13 +1,13 @@
 package dao
 
 import (
-	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
+	"github.com/imfact-labs/currency-model/operation/extras"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
-	"github.com/ProtoconNet/mitum-currency/v3/common"
-	bsonenc "github.com/ProtoconNet/mitum-currency/v3/digest/util/bson"
-	"github.com/ProtoconNet/mitum2/util/hint"
-	"github.com/ProtoconNet/mitum2/util/valuehash"
+	"github.com/imfact-labs/currency-model/common"
+	"github.com/imfact-labs/currency-model/utils/bsonenc"
+	"github.com/imfact-labs/mitum2/util/hint"
+	"github.com/imfact-labs/mitum2/util/valuehash"
 )
 
 func (fact CancelProposalFact) MarshalBSON() ([]byte, error) {

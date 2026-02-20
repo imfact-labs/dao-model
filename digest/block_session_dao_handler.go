@@ -1,9 +1,9 @@
 package digest
 
 import (
-	cdigest "github.com/ProtoconNet/mitum-currency/v3/digest"
-	"github.com/ProtoconNet/mitum-dao/state"
-	mitumbase "github.com/ProtoconNet/mitum2/base"
+	cdigest "github.com/imfact-labs/currency-model/digest"
+	"github.com/imfact-labs/dao-model/state"
+	mitumbase "github.com/imfact-labs/mitum2/base"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 

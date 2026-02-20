@@ -3,10 +3,10 @@ package cmds
 import (
 	"context"
 
-	ccmds "github.com/ProtoconNet/mitum-currency/v3/cmds"
-	"github.com/ProtoconNet/mitum-dao/operation/dao"
-	"github.com/ProtoconNet/mitum2/base"
-	"github.com/ProtoconNet/mitum2/util"
+	ccmds "github.com/imfact-labs/currency-model/app/cmds"
+	"github.com/imfact-labs/dao-model/operation/dao"
+	"github.com/imfact-labs/mitum2/base"
+	"github.com/imfact-labs/mitum2/util"
 	"github.com/pkg/errors"
 )
 

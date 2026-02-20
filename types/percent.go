@@ -1,8 +1,8 @@
 package types
 
 import (
-	"github.com/ProtoconNet/mitum-currency/v3/common"
-	"github.com/ProtoconNet/mitum2/util"
+	"github.com/imfact-labs/currency-model/common"
+	"github.com/imfact-labs/mitum2/util"
 	"github.com/pkg/errors"
 )
 

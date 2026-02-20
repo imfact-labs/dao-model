@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ProtoconNet/mitum-dao/types"
-	"github.com/ProtoconNet/mitum2/base"
-	"github.com/ProtoconNet/mitum2/util"
-	"github.com/ProtoconNet/mitum2/util/hint"
+	"github.com/imfact-labs/dao-model/types"
+	"github.com/imfact-labs/mitum2/base"
+	"github.com/imfact-labs/mitum2/util"
+	"github.com/imfact-labs/mitum2/util/hint"
 	"github.com/pkg/errors"
 )
 

@@ -1,10 +1,10 @@
 package types
 
 import (
-	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
-	"github.com/ProtoconNet/mitum2/base"
-	"github.com/ProtoconNet/mitum2/util"
-	"github.com/ProtoconNet/mitum2/util/hint"
+	ctypes "github.com/imfact-labs/currency-model/types"
+	"github.com/imfact-labs/mitum2/base"
+	"github.com/imfact-labs/mitum2/util"
+	"github.com/imfact-labs/mitum2/util/hint"
 )
 
 const (

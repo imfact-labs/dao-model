@@ -1,13 +1,14 @@
-package digest
+package api
 
 import (
 	"net/http"
 
-	cdigest "github.com/ProtoconNet/mitum-currency/v3/digest"
-	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
-	"github.com/ProtoconNet/mitum-dao/state"
-	"github.com/ProtoconNet/mitum-dao/types"
-	mitumutil "github.com/ProtoconNet/mitum2/util"
+	apic "github.com/imfact-labs/currency-model/api"
+	ctypes "github.com/imfact-labs/currency-model/types"
+	"github.com/imfact-labs/dao-model/digest"
+	"github.com/imfact-labs/dao-model/state"
+	"github.com/imfact-labs/dao-model/types"
+	mitumutil "github.com/imfact-labs/mitum2/util"
 )
 
 var (
@@ -18,7 +19,7 @@ var (
 	HandlerPathDAOVotingPowerBox = `/dao/{contract:(?i)` + ctypes.REStringAddressString + `}/proposal/{proposal_id:` + ctypes.ReSpecialCh + `}/votingpower` // revive:disable-line:line-length-limit
 )
 
-func SetHandlers(hd *cdigest.Handlers) {
+func SetHandlers(hd *apic.Handlers) {
 	get := 1000
 	_ = hd.SetHandler(HandlerPathDAOService, HandleDAOService, true, get, get).
 		Methods(http.MethodOptions, "GET")
@@ -32,15 +33,15 @@ func SetHandlers(hd *cdigest.Handlers) {
 		Methods(http.MethodOptions, "GET")
 }
 
-func HandleDAOService(hd *cdigest.Handlers, w http.ResponseWriter, r *http.Request) {
-	cacheKey := cdigest.CacheKeyPath(r)
-	if err := cdigest.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
+func HandleDAOService(hd *apic.Handlers, w http.ResponseWriter, r *http.Request) {
+	cacheKey := apic.CacheKeyPath(r)
+	if err := apic.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
 		return
 	}
 
-	contract, err, status := cdigest.ParseRequest(w, r, "contract")
+	contract, err, status := apic.ParseRequest(w, r, "contract")
 	if err != nil {
-		cdigest.HTTP2ProblemWithError(w, err, status)
+		apic.HTTP2ProblemWithError(w, err, status)
 
 		return
 	}
@@ -48,17 +49,17 @@ func HandleDAOService(hd *cdigest.Handlers, w http.ResponseWriter, r *http.Reque
 	if v, err, shared := hd.RG().Do(cacheKey, func() (interface{}, error) {
 		return handleDAODesignInGroup(hd, contract)
 	}); err != nil {
-		cdigest.HTTP2HandleError(w, err)
+		apic.HTTP2HandleError(w, err)
 	} else {
-		cdigest.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
+		apic.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
 		if !shared {
-			cdigest.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
+			apic.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
 		}
 	}
 }
 
-func handleDAODesignInGroup(hd *cdigest.Handlers, contract string) (interface{}, error) {
-	switch design, err := DAOService(hd.Database(), contract); {
+func handleDAODesignInGroup(hd *apic.Handlers, contract string) (interface{}, error) {
+	switch design, err := digest.DAOService(hd.Database(), contract); {
 	case err != nil:
 		return nil, mitumutil.ErrNotFound.WithMessage(err, "dao service, contract %s", contract)
 	case design == nil:
@@ -72,50 +73,50 @@ func handleDAODesignInGroup(hd *cdigest.Handlers, contract string) (interface{},
 	}
 }
 
-func buildDAODesignHal(hd *cdigest.Handlers, contract string, design types.Design) (cdigest.Hal, error) {
+func buildDAODesignHal(hd *apic.Handlers, contract string, design types.Design) (apic.Hal, error) {
 	h, err := hd.CombineURL(HandlerPathDAOService, "contract", contract)
 	if err != nil {
 		return nil, err
 	}
 
-	hal := cdigest.NewBaseHal(design, cdigest.NewHalLink(h, nil))
+	hal := apic.NewBaseHal(design, apic.NewHalLink(h, nil))
 
 	return hal, nil
 }
 
-func HandleDAOProposal(hd *cdigest.Handlers, w http.ResponseWriter, r *http.Request) {
-	cacheKey := cdigest.CacheKeyPath(r)
-	if err := cdigest.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
+func HandleDAOProposal(hd *apic.Handlers, w http.ResponseWriter, r *http.Request) {
+	cacheKey := apic.CacheKeyPath(r)
+	if err := apic.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
 		return
 	}
 
-	contract, err, status := cdigest.ParseRequest(w, r, "contract")
+	contract, err, status := apic.ParseRequest(w, r, "contract")
 	if err != nil {
-		cdigest.HTTP2ProblemWithError(w, err, status)
+		apic.HTTP2ProblemWithError(w, err, status)
 
 		return
 	}
 
-	proposalID, err, status := cdigest.ParseRequest(w, r, "proposal_id")
+	proposalID, err, status := apic.ParseRequest(w, r, "proposal_id")
 	if err != nil {
-		cdigest.HTTP2ProblemWithError(w, err, status)
+		apic.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
 	if v, err, shared := hd.RG().Do(cacheKey, func() (interface{}, error) {
 		return handleDAOProposalInGroup(hd, contract, proposalID)
 	}); err != nil {
-		cdigest.HTTP2HandleError(w, err)
+		apic.HTTP2HandleError(w, err)
 	} else {
-		cdigest.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
+		apic.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
 		if !shared {
-			cdigest.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
+			apic.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
 		}
 	}
 }
 
-func handleDAOProposalInGroup(hd *cdigest.Handlers, contract, proposalID string) (interface{}, error) {
-	switch proposal, err := DAOProposal(hd.Database(), contract, proposalID); {
+func handleDAOProposalInGroup(hd *apic.Handlers, contract, proposalID string) (interface{}, error) {
+	switch proposal, err := digest.DAOProposal(hd.Database(), contract, proposalID); {
 	case err != nil:
 		return nil, mitumutil.ErrNotFound.WithMessage(err, "proposal, contract %s, proposalID %s", contract, proposalID)
 	case proposal == nil:
@@ -129,55 +130,55 @@ func handleDAOProposalInGroup(hd *cdigest.Handlers, contract, proposalID string)
 	}
 }
 
-func buildDAOProposalHal(hd *cdigest.Handlers, contract, proposalID string, proposal state.ProposalStateValue) (cdigest.Hal, error) {
+func buildDAOProposalHal(hd *apic.Handlers, contract, proposalID string, proposal state.ProposalStateValue) (apic.Hal, error) {
 	h, err := hd.CombineURL(HandlerPathDAOProposal, "contract", contract, "proposal_id", proposalID)
 	if err != nil {
 		return nil, err
 	}
 
-	hal := cdigest.NewBaseHal(proposal, cdigest.NewHalLink(h, nil))
+	hal := apic.NewBaseHal(proposal, apic.NewHalLink(h, nil))
 
 	return hal, nil
 }
 
-func HandleDAODelegator(hd *cdigest.Handlers, w http.ResponseWriter, r *http.Request) {
-	cacheKey := cdigest.CacheKeyPath(r)
-	if err := cdigest.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
+func HandleDAODelegator(hd *apic.Handlers, w http.ResponseWriter, r *http.Request) {
+	cacheKey := apic.CacheKeyPath(r)
+	if err := apic.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
 		return
 	}
 
-	contract, err, status := cdigest.ParseRequest(w, r, "contract")
+	contract, err, status := apic.ParseRequest(w, r, "contract")
 	if err != nil {
-		cdigest.HTTP2ProblemWithError(w, err, status)
+		apic.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
-	proposalID, err, status := cdigest.ParseRequest(w, r, "proposal_id")
+	proposalID, err, status := apic.ParseRequest(w, r, "proposal_id")
 	if err != nil {
-		cdigest.HTTP2ProblemWithError(w, err, status)
+		apic.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
-	delegator, err, status := cdigest.ParseRequest(w, r, "address")
+	delegator, err, status := apic.ParseRequest(w, r, "address")
 	if err != nil {
-		cdigest.HTTP2ProblemWithError(w, err, status)
+		apic.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
 	if v, err, shared := hd.RG().Do(cacheKey, func() (interface{}, error) {
 		return handleDAODelegatorInGroup(hd, contract, proposalID, delegator)
 	}); err != nil {
-		cdigest.HTTP2HandleError(w, err)
+		apic.HTTP2HandleError(w, err)
 	} else {
-		cdigest.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
+		apic.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
 		if !shared {
-			cdigest.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
+			apic.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
 		}
 	}
 }
 
-func handleDAODelegatorInGroup(hd *cdigest.Handlers, contract, proposalID, delegator string) (interface{}, error) {
-	switch delegatorInfo, err := DAODelegatorInfo(hd.Database(), contract, proposalID, delegator); {
+func handleDAODelegatorInGroup(hd *apic.Handlers, contract, proposalID, delegator string) (interface{}, error) {
+	switch delegatorInfo, err := digest.DAODelegatorInfo(hd.Database(), contract, proposalID, delegator); {
 	case err != nil:
 		return nil, mitumutil.ErrNotFound.WithMessage(err, "delegator info, contract %s, proposalID %s, delegator %s", contract, proposalID, delegator)
 	case delegatorInfo == nil:
@@ -191,10 +192,10 @@ func handleDAODelegatorInGroup(hd *cdigest.Handlers, contract, proposalID, deleg
 	}
 }
 
-func buildDAODelegatorHal(hd *cdigest.Handlers,
+func buildDAODelegatorHal(hd *apic.Handlers,
 	contract, proposalID, delegator string,
 	delegatorInfo types.DelegatorInfo,
-) (cdigest.Hal, error) {
+) (apic.Hal, error) {
 	h, err := hd.CombineURL(
 		HandlerPathDAODelegator,
 		"contract", contract,
@@ -205,43 +206,43 @@ func buildDAODelegatorHal(hd *cdigest.Handlers,
 		return nil, err
 	}
 
-	hal := cdigest.NewBaseHal(delegatorInfo, cdigest.NewHalLink(h, nil))
+	hal := apic.NewBaseHal(delegatorInfo, apic.NewHalLink(h, nil))
 
 	return hal, nil
 }
 
-func HandleDAOVoters(hd *cdigest.Handlers, w http.ResponseWriter, r *http.Request) {
-	cacheKey := cdigest.CacheKeyPath(r)
-	if err := cdigest.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
+func HandleDAOVoters(hd *apic.Handlers, w http.ResponseWriter, r *http.Request) {
+	cacheKey := apic.CacheKeyPath(r)
+	if err := apic.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
 		return
 	}
 
-	contract, err, status := cdigest.ParseRequest(w, r, "contract")
+	contract, err, status := apic.ParseRequest(w, r, "contract")
 	if err != nil {
-		cdigest.HTTP2ProblemWithError(w, err, status)
+		apic.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
-	proposalID, err, status := cdigest.ParseRequest(w, r, "proposal_id")
+	proposalID, err, status := apic.ParseRequest(w, r, "proposal_id")
 	if err != nil {
-		cdigest.HTTP2ProblemWithError(w, err, status)
+		apic.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
 	if v, err, shared := hd.RG().Do(cacheKey, func() (interface{}, error) {
 		return handleDAOVotersInGroup(hd, contract, proposalID)
 	}); err != nil {
-		cdigest.HTTP2HandleError(w, err)
+		apic.HTTP2HandleError(w, err)
 	} else {
-		cdigest.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
+		apic.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
 		if !shared {
-			cdigest.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
+			apic.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
 		}
 	}
 }
 
-func handleDAOVotersInGroup(hd *cdigest.Handlers, contract, proposalID string) (interface{}, error) {
-	switch voters, err := DAOVoters(hd.Database(), contract, proposalID); {
+func handleDAOVotersInGroup(hd *apic.Handlers, contract, proposalID string) (interface{}, error) {
+	switch voters, err := digest.DAOVoters(hd.Database(), contract, proposalID); {
 	case err != nil:
 		return nil, mitumutil.ErrNotFound.WithMessage(err, "voters, contract %s, proposalID %s", contract, proposalID)
 	case voters == nil:
@@ -255,51 +256,51 @@ func handleDAOVotersInGroup(hd *cdigest.Handlers, contract, proposalID string) (
 	}
 }
 
-func buildDAOVotersHal(hd *cdigest.Handlers,
+func buildDAOVotersHal(hd *apic.Handlers,
 	contract, proposalID string, voters []types.VoterInfo,
-) (cdigest.Hal, error) {
+) (apic.Hal, error) {
 	h, err := hd.CombineURL(HandlerPathDAOVoters, "contract", contract, "proposal_id", proposalID)
 	if err != nil {
 		return nil, err
 	}
 
-	hal := cdigest.NewBaseHal(voters, cdigest.NewHalLink(h, nil))
+	hal := apic.NewBaseHal(voters, apic.NewHalLink(h, nil))
 
 	return hal, nil
 }
 
-func HandleDAOVotingPowerBox(hd *cdigest.Handlers, w http.ResponseWriter, r *http.Request) {
-	cacheKey := cdigest.CacheKeyPath(r)
-	if err := cdigest.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
+func HandleDAOVotingPowerBox(hd *apic.Handlers, w http.ResponseWriter, r *http.Request) {
+	cacheKey := apic.CacheKeyPath(r)
+	if err := apic.LoadFromCache(hd.Cache(), cacheKey, w); err == nil {
 		return
 	}
 
-	contract, err, status := cdigest.ParseRequest(w, r, "contract")
+	contract, err, status := apic.ParseRequest(w, r, "contract")
 	if err != nil {
-		cdigest.HTTP2ProblemWithError(w, err, status)
+		apic.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
-	proposalID, err, status := cdigest.ParseRequest(w, r, "proposal_id")
+	proposalID, err, status := apic.ParseRequest(w, r, "proposal_id")
 	if err != nil {
-		cdigest.HTTP2ProblemWithError(w, err, status)
+		apic.HTTP2ProblemWithError(w, err, status)
 		return
 	}
 
 	if v, err, shared := hd.RG().Do(cacheKey, func() (interface{}, error) {
 		return handleDAOVotingPowerBoxInGroup(hd, contract, proposalID)
 	}); err != nil {
-		cdigest.HTTP2HandleError(w, err)
+		apic.HTTP2HandleError(w, err)
 	} else {
-		cdigest.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
+		apic.HTTP2WriteHalBytes(hd.Encoder(), w, v.([]byte), http.StatusOK)
 		if !shared {
-			cdigest.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
+			apic.HTTP2WriteCache(w, cacheKey, hd.ExpireShortLived())
 		}
 	}
 }
 
-func handleDAOVotingPowerBoxInGroup(hd *cdigest.Handlers, contract, proposalID string) (interface{}, error) {
-	switch votingPowerBox, err := DAOVotingPowerBox(hd.Database(), contract, proposalID); {
+func handleDAOVotingPowerBoxInGroup(hd *apic.Handlers, contract, proposalID string) (interface{}, error) {
+	switch votingPowerBox, err := digest.DAOVotingPowerBox(hd.Database(), contract, proposalID); {
 	case err != nil:
 		return nil, mitumutil.ErrNotFound.WithMessage(err, "voting power box, contract %s, proposalID %s", contract, proposalID)
 	case votingPowerBox == nil:
@@ -314,10 +315,10 @@ func handleDAOVotingPowerBoxInGroup(hd *cdigest.Handlers, contract, proposalID s
 	}
 }
 
-func buildDAOVotingPowerBoxHal(hd *cdigest.Handlers,
+func buildDAOVotingPowerBoxHal(hd *apic.Handlers,
 	contract, proposalID string,
 	votingPowerBox types.VotingPowerBox,
-) (cdigest.Hal, error) {
+) (apic.Hal, error) {
 	h, err := hd.CombineURL(
 		HandlerPathDAOVotingPowerBox,
 		"contract", contract,
@@ -327,7 +328,7 @@ func buildDAOVotingPowerBoxHal(hd *cdigest.Handlers,
 		return nil, err
 	}
 
-	hal := cdigest.NewBaseHal(votingPowerBox, cdigest.NewHalLink(h, nil))
+	hal := apic.NewBaseHal(votingPowerBox, apic.NewHalLink(h, nil))
 
 	return hal, nil
 }

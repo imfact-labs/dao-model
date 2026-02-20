@@ -1,13 +1,16 @@
 package dao
 
 import (
-	"github.com/ProtoconNet/mitum-currency/v3/common"
-	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
-	"github.com/ProtoconNet/mitum-currency/v3/types"
-	"github.com/ProtoconNet/mitum2/base"
-	"github.com/ProtoconNet/mitum2/util"
-	"github.com/ProtoconNet/mitum2/util/hint"
-	"github.com/ProtoconNet/mitum2/util/valuehash"
+	"fmt"
+
+	"github.com/imfact-labs/currency-model/common"
+	"github.com/imfact-labs/currency-model/operation/extras"
+	"github.com/imfact-labs/currency-model/types"
+	"github.com/imfact-labs/dao-model/operation/processor"
+	"github.com/imfact-labs/mitum2/base"
+	"github.com/imfact-labs/mitum2/util"
+	"github.com/imfact-labs/mitum2/util/hint"
+	"github.com/imfact-labs/mitum2/util/valuehash"
 	"github.com/pkg/errors"
 )
 
@@ -151,6 +154,14 @@ func (fact ExecuteFact) Signer() base.Address {
 
 func (fact ExecuteFact) ActiveContract() []base.Address {
 	return []base.Address{fact.contract}
+}
+
+func (fact ExecuteFact) DupKey() (map[types.DuplicationKeyType][]string, error) {
+	r := make(map[types.DuplicationKeyType][]string)
+	r[extras.DuplicationKeyTypeSender] = []string{fact.sender.String()}
+	r[processor.DuplicationTypeDAOContractProposal] = []string{fmt.Sprintf("%s:%s", fact.Contract().String(), fact.ProposalID())}
+
+	return r, nil
 }
 
 type Execute struct {

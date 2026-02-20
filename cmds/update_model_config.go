@@ -3,12 +3,12 @@ package cmds
 import (
 	"context"
 
-	ccmds "github.com/ProtoconNet/mitum-currency/v3/cmds"
-	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
-	"github.com/ProtoconNet/mitum-dao/operation/dao"
-	"github.com/ProtoconNet/mitum-dao/types"
-	"github.com/ProtoconNet/mitum2/base"
-	"github.com/ProtoconNet/mitum2/util"
+	ccmds "github.com/imfact-labs/currency-model/app/cmds"
+	ctypes "github.com/imfact-labs/currency-model/types"
+	"github.com/imfact-labs/dao-model/operation/dao"
+	"github.com/imfact-labs/dao-model/types"
+	"github.com/imfact-labs/mitum2/base"
+	"github.com/imfact-labs/mitum2/util"
 	"github.com/pkg/errors"
 )
 

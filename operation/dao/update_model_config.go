@@ -1,14 +1,14 @@
 package dao
 
 import (
-	"github.com/ProtoconNet/mitum-currency/v3/common"
-	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
-	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
-	"github.com/ProtoconNet/mitum-dao/types"
-	"github.com/ProtoconNet/mitum2/base"
-	"github.com/ProtoconNet/mitum2/util"
-	"github.com/ProtoconNet/mitum2/util/hint"
-	"github.com/ProtoconNet/mitum2/util/valuehash"
+	"github.com/imfact-labs/currency-model/common"
+	"github.com/imfact-labs/currency-model/operation/extras"
+	ctypes "github.com/imfact-labs/currency-model/types"
+	"github.com/imfact-labs/dao-model/types"
+	"github.com/imfact-labs/mitum2/base"
+	"github.com/imfact-labs/mitum2/util"
+	"github.com/imfact-labs/mitum2/util/hint"
+	"github.com/imfact-labs/mitum2/util/valuehash"
 	"github.com/pkg/errors"
 )
 
@@ -290,6 +290,14 @@ func (fact UpdateModelConfigFact) Signer() base.Address {
 
 func (fact UpdateModelConfigFact) ActiveContractOwnerHandlerOnly() [][2]base.Address {
 	return [][2]base.Address{{fact.contract, fact.sender}}
+}
+
+func (fact UpdateModelConfigFact) DupKey() (map[ctypes.DuplicationKeyType][]string, error) {
+	r := make(map[ctypes.DuplicationKeyType][]string)
+	r[extras.DuplicationKeyTypeSender] = []string{fact.sender.String()}
+	r[extras.DuplicationKeyTypeContractStatus] = []string{fact.contract.String()}
+
+	return r, nil
 }
 
 type UpdateModelConfig struct {

@@ -3,9 +3,9 @@ package dao
 import (
 	"time"
 
-	"github.com/ProtoconNet/mitum-currency/v3/operation/test"
-	"github.com/ProtoconNet/mitum-currency/v3/types"
-	"github.com/ProtoconNet/mitum2/base"
+	"github.com/imfact-labs/currency-model/operation/test"
+	"github.com/imfact-labs/currency-model/types"
+	"github.com/imfact-labs/mitum2/base"
 )
 
 type TestRegisterProcessor struct {

@@ -1,13 +1,13 @@
 package digest
 
 import (
-	mongodbst "github.com/ProtoconNet/mitum-currency/v3/digest/mongodb"
-	bsonenc "github.com/ProtoconNet/mitum-currency/v3/digest/util/bson"
-	"github.com/ProtoconNet/mitum-currency/v3/state"
-	statedao "github.com/ProtoconNet/mitum-dao/state"
-	"github.com/ProtoconNet/mitum-dao/types"
-	"github.com/ProtoconNet/mitum2/base"
-	"github.com/ProtoconNet/mitum2/util/encoder"
+	mongodbst "github.com/imfact-labs/currency-model/digest/mongodb"
+	"github.com/imfact-labs/currency-model/state"
+	bsonenc "github.com/imfact-labs/currency-model/utils/bsonenc"
+	statedao "github.com/imfact-labs/dao-model/state"
+	"github.com/imfact-labs/dao-model/types"
+	"github.com/imfact-labs/mitum2/base"
+	"github.com/imfact-labs/mitum2/util/encoder"
 )
 
 type DAODesignDoc struct {

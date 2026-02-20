@@ -3,16 +3,15 @@ package cmds
 import (
 	"context"
 
-	ccmds "github.com/ProtoconNet/mitum-currency/v3/cmds"
-	cprocessor "github.com/ProtoconNet/mitum-currency/v3/operation/processor"
-	"github.com/ProtoconNet/mitum-dao/operation/dao"
-	"github.com/ProtoconNet/mitum-dao/operation/processor"
-	"github.com/ProtoconNet/mitum2/base"
-	"github.com/ProtoconNet/mitum2/isaac"
-	"github.com/ProtoconNet/mitum2/launch"
-	"github.com/ProtoconNet/mitum2/util"
-	"github.com/ProtoconNet/mitum2/util/hint"
-	"github.com/ProtoconNet/mitum2/util/ps"
+	ccmds "github.com/imfact-labs/currency-model/app/cmds"
+	cprocessor "github.com/imfact-labs/currency-model/operation/processor"
+	"github.com/imfact-labs/dao-model/operation/dao"
+	"github.com/imfact-labs/mitum2/base"
+	"github.com/imfact-labs/mitum2/isaac"
+	"github.com/imfact-labs/mitum2/launch"
+	"github.com/imfact-labs/mitum2/util"
+	"github.com/imfact-labs/mitum2/util/hint"
+	"github.com/imfact-labs/mitum2/util/ps"
 )
 
 var PNameOperationProcessorsMap = ps.Name("mitum-dao-operation-processors-map")
@@ -38,7 +37,7 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 	//if err != nil {
 	//	return pctx, err
 	//}
-	err := opr.SetGetNewProcessorFunc(processor.GetNewProcessor)
+	err := opr.SetGetNewProcessorFunc(cprocessor.GetNewProcessor)
 	if err != nil {
 		return pctx, err
 	}
