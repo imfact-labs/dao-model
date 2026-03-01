@@ -11,6 +11,7 @@ import (
 	"github.com/imfact-labs/mitum2/util/ps"
 	"github.com/imfact-labs/mitum2/util/valuehash"
 
+	"github.com/imfact-labs/dao-model/runtime/pipeline"
 	"github.com/imfact-labs/mitum2/base"
 	"github.com/imfact-labs/mitum2/isaac"
 	isaacblock "github.com/imfact-labs/mitum2/isaac/block"
@@ -80,7 +81,7 @@ func (cmd *ImportCommand) Run(pctx context.Context) error {
 		launch.PrivatekeyContextKey: string(cmd.PrivatekeyFlags.Flag.Body()),
 	})
 
-	pps := DefaultImportPS()
+	pps := pipeline.DefaultImportPS()
 	_ = pps.SetLogging(log)
 
 	_ = pps.AddOK(pNameImportBlocks, cmd.importBlocks, nil, launch.PNameStorage)
