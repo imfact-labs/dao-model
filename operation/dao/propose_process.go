@@ -88,13 +88,8 @@ func (opp *ProposeProcessor) PreProcess(
 		return ctx, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.Wrap(common.ErrMCurrencyNF).Errorf("currency id %q", fact.Currency())), nil
 	}
-
-	fee, err := currencyPolicy.Feeer().Fee(common.ZeroBig)
-	if err != nil {
-		return ctx, base.NewBaseOperationProcessReasonError(
-			common.ErrMPreProcess.Wrap(common.ErrMStateValInvalid).
-				Errorf("get fee of currency id %q", fact.Currency())), nil
-	}
+	
+	fee := currencyPolicy.Feeer().Fee()
 
 	required[fact.currency.String()] = fee
 

@@ -129,19 +129,12 @@ func (fact CancelProposalFact) Addresses() ([]base.Address, error) {
 	return as, nil
 }
 
-func (fact CancelProposalFact) FeeBase() map[types.CurrencyID][]common.Big {
-	required := make(map[types.CurrencyID][]common.Big)
-	required[fact.Currency()] = []common.Big{common.ZeroBig}
-
-	return required
+func (fact CancelProposalFact) FeeBase() (types.CurrencyID, int, int, bool) {
+	return fact.Currency(), extras.NoItemFeeBaseItemCount, len(fact.Bytes()), extras.HasNoItem
 }
 
 func (fact CancelProposalFact) FeePayer() base.Address {
 	return fact.sender
-}
-
-func (fact CancelProposalFact) FeeItemCount() (uint, bool) {
-	return extras.ZeroItem, extras.HasNoItem
 }
 
 func (fact CancelProposalFact) FactUser() base.Address {

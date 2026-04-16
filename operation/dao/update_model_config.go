@@ -265,19 +265,12 @@ func (fact UpdateModelConfigFact) Addresses() ([]base.Address, error) {
 	return as, nil
 }
 
-func (fact UpdateModelConfigFact) FeeBase() map[ctypes.CurrencyID][]common.Big {
-	required := make(map[ctypes.CurrencyID][]common.Big)
-	required[fact.Currency()] = []common.Big{common.ZeroBig}
-
-	return required
+func (fact UpdateModelConfigFact) FeeBase() (ctypes.CurrencyID, int, int, bool) {
+	return fact.Currency(), extras.NoItemFeeBaseItemCount, len(fact.Bytes()), extras.HasNoItem
 }
 
 func (fact UpdateModelConfigFact) FeePayer() base.Address {
 	return fact.sender
-}
-
-func (fact UpdateModelConfigFact) FeeItemCount() (uint, bool) {
-	return extras.ZeroItem, extras.HasNoItem
 }
 
 func (fact UpdateModelConfigFact) FactUser() base.Address {

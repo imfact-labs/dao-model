@@ -130,19 +130,12 @@ func (fact PostSnapFact) Addresses() ([]base.Address, error) {
 	return as, nil
 }
 
-func (fact PostSnapFact) FeeBase() map[types.CurrencyID][]common.Big {
-	required := make(map[types.CurrencyID][]common.Big)
-	required[fact.Currency()] = []common.Big{common.ZeroBig}
-
-	return required
+func (fact PostSnapFact) FeeBase() (types.CurrencyID, int, int, bool) {
+	return fact.Currency(), extras.NoItemFeeBaseItemCount, len(fact.Bytes()), extras.HasNoItem
 }
 
 func (fact PostSnapFact) FeePayer() base.Address {
 	return fact.sender
-}
-
-func (fact PostSnapFact) FeeItemCount() (uint, bool) {
-	return extras.ZeroItem, extras.HasNoItem
 }
 
 func (fact PostSnapFact) FactUser() base.Address {
