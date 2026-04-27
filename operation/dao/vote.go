@@ -160,7 +160,6 @@ func (fact VoteFact) ActiveContract() []base.Address {
 
 func (fact VoteFact) DupKey() (map[types.DuplicationKeyType][]string, error) {
 	r := make(map[types.DuplicationKeyType][]string)
-	r[extras.DuplicationKeyTypeSender] = []string{fact.sender.String()}
 	r[processor.DuplicationTypeDAOContractProposal] = []string{fmt.Sprintf("%s:%s", fact.Contract().String(), fact.ProposalID())}
 
 	return r, nil
@@ -168,6 +167,16 @@ func (fact VoteFact) DupKey() (map[types.DuplicationKeyType][]string, error) {
 
 type Vote struct {
 	extras.ExtendedOperation
+}
+
+func (op Vote) DupKey() (map[types.DuplicationKeyType][]string, error) {
+	r := make(map[types.DuplicationKeyType][]string)
+
+	if err := extras.AddOperationFeePayerDupKeys(r, op); err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
 func NewVote(fact VoteFact) Vote {

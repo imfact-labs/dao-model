@@ -287,7 +287,6 @@ func (fact UpdateModelConfigFact) ActiveContractOwnerHandlerOnly() [][2]base.Add
 
 func (fact UpdateModelConfigFact) DupKey() (map[ctypes.DuplicationKeyType][]string, error) {
 	r := make(map[ctypes.DuplicationKeyType][]string)
-	r[extras.DuplicationKeyTypeSender] = []string{fact.sender.String()}
 	r[extras.DuplicationKeyTypeContractStatus] = []string{fact.contract.String()}
 
 	return r, nil
@@ -295,6 +294,16 @@ func (fact UpdateModelConfigFact) DupKey() (map[ctypes.DuplicationKeyType][]stri
 
 type UpdateModelConfig struct {
 	extras.ExtendedOperation
+}
+
+func (op UpdateModelConfig) DupKey() (map[ctypes.DuplicationKeyType][]string, error) {
+	r := make(map[ctypes.DuplicationKeyType][]string)
+
+	if err := extras.AddOperationFeePayerDupKeys(r, op); err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
 func NewUpdateModelConfig(fact UpdateModelConfigFact) UpdateModelConfig {

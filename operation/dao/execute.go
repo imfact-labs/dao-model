@@ -151,7 +151,6 @@ func (fact ExecuteFact) ActiveContract() []base.Address {
 
 func (fact ExecuteFact) DupKey() (map[types.DuplicationKeyType][]string, error) {
 	r := make(map[types.DuplicationKeyType][]string)
-	r[extras.DuplicationKeyTypeSender] = []string{fact.sender.String()}
 	r[processor.DuplicationTypeDAOContractProposal] = []string{fmt.Sprintf("%s:%s", fact.Contract().String(), fact.ProposalID())}
 
 	return r, nil
@@ -159,6 +158,16 @@ func (fact ExecuteFact) DupKey() (map[types.DuplicationKeyType][]string, error) 
 
 type Execute struct {
 	extras.ExtendedOperation
+}
+
+func (op Execute) DupKey() (map[types.DuplicationKeyType][]string, error) {
+	r := make(map[types.DuplicationKeyType][]string)
+
+	if err := extras.AddOperationFeePayerDupKeys(r, op); err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
 func NewExecute(fact ExecuteFact) Execute {
